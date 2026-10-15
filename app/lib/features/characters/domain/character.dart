@@ -57,7 +57,12 @@ abstract class CharacterDetail with _$CharacterDetail {
     String? projectKind,
     String? worldName,
     String? sourceCharacterName,
+    int? sourceCharacterId,
     String? updatedAt,
+    // 고칠 때 그대로 돌려보내야 하는 값 (화면엔 안 보임)
+    int? worldId,
+    @IntBool() @Default(false) bool isCardDownloadable,
+    @Default(0) int sortOrder,
     @Default([]) List<CharacterField> fields,
     @Default([]) List<Trait> traits,
     @Default([]) List<Quote> quotes,

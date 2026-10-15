@@ -71,7 +71,13 @@ _CharacterDetail _$CharacterDetailFromJson(Map<String, dynamic> json) =>
       projectKind: json['project_kind'] as String?,
       worldName: json['world_name'] as String?,
       sourceCharacterName: json['source_character_name'] as String?,
+      sourceCharacterId: (json['source_character_id'] as num?)?.toInt(),
       updatedAt: json['updated_at'] as String?,
+      worldId: (json['world_id'] as num?)?.toInt(),
+      isCardDownloadable: json['is_card_downloadable'] == null
+          ? false
+          : const IntBool().fromJson(json['is_card_downloadable']),
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
       fields:
           (json['fields'] as List<dynamic>?)
               ?.map((e) => CharacterField.fromJson(e as Map<String, dynamic>))
@@ -125,7 +131,11 @@ Map<String, dynamic> _$CharacterDetailToJson(
   'project_kind': instance.projectKind,
   'world_name': instance.worldName,
   'source_character_name': instance.sourceCharacterName,
+  'source_character_id': instance.sourceCharacterId,
   'updated_at': instance.updatedAt,
+  'world_id': instance.worldId,
+  'is_card_downloadable': const IntBool().toJson(instance.isCardDownloadable),
+  'sort_order': instance.sortOrder,
   'fields': instance.fields.map((e) => e.toJson()).toList(),
   'traits': instance.traits.map((e) => e.toJson()).toList(),
   'quotes': instance.quotes.map((e) => e.toJson()).toList(),

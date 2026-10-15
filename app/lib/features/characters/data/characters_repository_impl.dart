@@ -1,9 +1,13 @@
 // 리포지토리 구현: GET /api/characters?scope=library | project_id=3 & q=검색어, /api/characters/:id
+// 고치기: POST·PUT /api/characters, /favorite, /move, /fork, /assets, 이미지 올리기 POST /api/assets
+import 'dart:typed_data';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_client_provider.dart';
 import '../domain/character.dart';
+import '../domain/character_draft.dart';
 import '../domain/character_scope.dart';
 import '../domain/characters_repository.dart';
 
@@ -33,4 +37,34 @@ class CharactersRepositoryImpl implements CharactersRepository {
 
   @override
   Future<CharacterDetail> fetchDetail(int id) async => CharacterDetail.fromJson(await _api.getMap('/api/characters/$id'));
+
+  @override
+  Future<CharacterDetail> save(int? id, CharacterDraft draft) async => CharacterDetail.fromJson(
+        id == null ? await _api.post('/api/characters', draft.toPayload()) : await _api.put('/api/characters/$id', draft.toPayload()),
+      );
+
+  @override
+  Future<int> uploadImage(Uint8List bytes, String fileName) async => (await _api.upload('/api/assets', bytes, fileName))['id'] as int;
+
+  @override
+  Future<CharacterDetail> addToGallery(int id, int assetId, {bool setPortrait = false}) async =>
+      CharacterDetail.fromJson(await _api.post('/api/characters/$id/assets', {'asset_id': assetId, 'set_portrait': setPortrait}));
+
+  @override
+  Future<CharacterDetail> removeFromGallery(int id, int assetId) async =>
+      CharacterDetail.fromJson(await _api.delete('/api/characters/$id/assets/$assetId'));
+
+  @override
+  Future<void> setFavorite(int id, bool favorite) => _api.put('/api/characters/$id/favorite', {'is_favorite': favorite});
+
+  @override
+  Future<CharacterDetail> move(int id, int? projectId) async =>
+      CharacterDetail.fromJson(await _api.post('/api/characters/$id/move', {'project_id': projectId}));
+
+  @override
+  Future<CharacterDetail> fork(int id, int? projectId) async =>
+      CharacterDetail.fromJson(await _api.post('/api/characters/$id/fork', {'project_id': projectId}));
+
+  @override
+  Future<void> delete(int id) => _api.delete('/api/characters/$id');
 }

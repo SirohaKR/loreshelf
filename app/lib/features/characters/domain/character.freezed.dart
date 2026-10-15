@@ -333,7 +333,7 @@ as String?,
 /// @nodoc
 mixin _$CharacterDetail {
 
- int get id; String get name; String? get nameEn; String? get tagline; String? get quote; String? get themeColor; int? get portraitAssetId; String? get bodyMd; String get visibility;@IntBool() bool get isFavorite; int? get projectId; String? get projectName; String? get projectKind; String? get worldName; String? get sourceCharacterName; String? get updatedAt; List<CharacterField> get fields; List<Trait> get traits; List<Quote> get quotes; List<String> get tags; List<GalleryImage> get gallery; List<LinkedProject> get linkedProjects; List<Genre> get projectGenres;
+ int get id; String get name; String? get nameEn; String? get tagline; String? get quote; String? get themeColor; int? get portraitAssetId; String? get bodyMd; String get visibility;@IntBool() bool get isFavorite; int? get projectId; String? get projectName; String? get projectKind; String? get worldName; String? get sourceCharacterName; int? get sourceCharacterId; String? get updatedAt; int? get worldId;@IntBool() bool get isCardDownloadable; int get sortOrder; List<CharacterField> get fields; List<Trait> get traits; List<Quote> get quotes; List<String> get tags; List<GalleryImage> get gallery; List<LinkedProject> get linkedProjects; List<Genre> get projectGenres;
 /// Create a copy of CharacterDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -346,16 +346,16 @@ $CharacterDetailCopyWith<CharacterDetail> get copyWith => _$CharacterDetailCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CharacterDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.tagline, tagline) || other.tagline == tagline)&&(identical(other.quote, quote) || other.quote == quote)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.portraitAssetId, portraitAssetId) || other.portraitAssetId == portraitAssetId)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.projectKind, projectKind) || other.projectKind == projectKind)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.sourceCharacterName, sourceCharacterName) || other.sourceCharacterName == sourceCharacterName)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.fields, fields)&&const DeepCollectionEquality().equals(other.traits, traits)&&const DeepCollectionEquality().equals(other.quotes, quotes)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.gallery, gallery)&&const DeepCollectionEquality().equals(other.linkedProjects, linkedProjects)&&const DeepCollectionEquality().equals(other.projectGenres, projectGenres));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CharacterDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.tagline, tagline) || other.tagline == tagline)&&(identical(other.quote, quote) || other.quote == quote)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.portraitAssetId, portraitAssetId) || other.portraitAssetId == portraitAssetId)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.projectKind, projectKind) || other.projectKind == projectKind)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.sourceCharacterName, sourceCharacterName) || other.sourceCharacterName == sourceCharacterName)&&(identical(other.sourceCharacterId, sourceCharacterId) || other.sourceCharacterId == sourceCharacterId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.worldId, worldId) || other.worldId == worldId)&&(identical(other.isCardDownloadable, isCardDownloadable) || other.isCardDownloadable == isCardDownloadable)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&const DeepCollectionEquality().equals(other.fields, fields)&&const DeepCollectionEquality().equals(other.traits, traits)&&const DeepCollectionEquality().equals(other.quotes, quotes)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.gallery, gallery)&&const DeepCollectionEquality().equals(other.linkedProjects, linkedProjects)&&const DeepCollectionEquality().equals(other.projectGenres, projectGenres));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,nameEn,tagline,quote,themeColor,portraitAssetId,bodyMd,visibility,isFavorite,projectId,projectName,projectKind,worldName,sourceCharacterName,updatedAt,const DeepCollectionEquality().hash(fields),const DeepCollectionEquality().hash(traits),const DeepCollectionEquality().hash(quotes),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(gallery),const DeepCollectionEquality().hash(linkedProjects),const DeepCollectionEquality().hash(projectGenres)]);
+int get hashCode => Object.hashAll([runtimeType,id,name,nameEn,tagline,quote,themeColor,portraitAssetId,bodyMd,visibility,isFavorite,projectId,projectName,projectKind,worldName,sourceCharacterName,sourceCharacterId,updatedAt,worldId,isCardDownloadable,sortOrder,const DeepCollectionEquality().hash(fields),const DeepCollectionEquality().hash(traits),const DeepCollectionEquality().hash(quotes),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(gallery),const DeepCollectionEquality().hash(linkedProjects),const DeepCollectionEquality().hash(projectGenres)]);
 
 @override
 String toString() {
-  return 'CharacterDetail(id: $id, name: $name, nameEn: $nameEn, tagline: $tagline, quote: $quote, themeColor: $themeColor, portraitAssetId: $portraitAssetId, bodyMd: $bodyMd, visibility: $visibility, isFavorite: $isFavorite, projectId: $projectId, projectName: $projectName, projectKind: $projectKind, worldName: $worldName, sourceCharacterName: $sourceCharacterName, updatedAt: $updatedAt, fields: $fields, traits: $traits, quotes: $quotes, tags: $tags, gallery: $gallery, linkedProjects: $linkedProjects, projectGenres: $projectGenres)';
+  return 'CharacterDetail(id: $id, name: $name, nameEn: $nameEn, tagline: $tagline, quote: $quote, themeColor: $themeColor, portraitAssetId: $portraitAssetId, bodyMd: $bodyMd, visibility: $visibility, isFavorite: $isFavorite, projectId: $projectId, projectName: $projectName, projectKind: $projectKind, worldName: $worldName, sourceCharacterName: $sourceCharacterName, sourceCharacterId: $sourceCharacterId, updatedAt: $updatedAt, worldId: $worldId, isCardDownloadable: $isCardDownloadable, sortOrder: $sortOrder, fields: $fields, traits: $traits, quotes: $quotes, tags: $tags, gallery: $gallery, linkedProjects: $linkedProjects, projectGenres: $projectGenres)';
 }
 
 
@@ -366,7 +366,7 @@ abstract mixin class $CharacterDetailCopyWith<$Res>  {
   factory $CharacterDetailCopyWith(CharacterDetail value, $Res Function(CharacterDetail) _then) = _$CharacterDetailCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String? nameEn, String? tagline, String? quote, String? themeColor, int? portraitAssetId, String? bodyMd, String visibility,@IntBool() bool isFavorite, int? projectId, String? projectName, String? projectKind, String? worldName, String? sourceCharacterName, String? updatedAt, List<CharacterField> fields, List<Trait> traits, List<Quote> quotes, List<String> tags, List<GalleryImage> gallery, List<LinkedProject> linkedProjects, List<Genre> projectGenres
+ int id, String name, String? nameEn, String? tagline, String? quote, String? themeColor, int? portraitAssetId, String? bodyMd, String visibility,@IntBool() bool isFavorite, int? projectId, String? projectName, String? projectKind, String? worldName, String? sourceCharacterName, int? sourceCharacterId, String? updatedAt, int? worldId,@IntBool() bool isCardDownloadable, int sortOrder, List<CharacterField> fields, List<Trait> traits, List<Quote> quotes, List<String> tags, List<GalleryImage> gallery, List<LinkedProject> linkedProjects, List<Genre> projectGenres
 });
 
 
@@ -383,7 +383,7 @@ class _$CharacterDetailCopyWithImpl<$Res>
 
 /// Create a copy of CharacterDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nameEn = freezed,Object? tagline = freezed,Object? quote = freezed,Object? themeColor = freezed,Object? portraitAssetId = freezed,Object? bodyMd = freezed,Object? visibility = null,Object? isFavorite = null,Object? projectId = freezed,Object? projectName = freezed,Object? projectKind = freezed,Object? worldName = freezed,Object? sourceCharacterName = freezed,Object? updatedAt = freezed,Object? fields = null,Object? traits = null,Object? quotes = null,Object? tags = null,Object? gallery = null,Object? linkedProjects = null,Object? projectGenres = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? nameEn = freezed,Object? tagline = freezed,Object? quote = freezed,Object? themeColor = freezed,Object? portraitAssetId = freezed,Object? bodyMd = freezed,Object? visibility = null,Object? isFavorite = null,Object? projectId = freezed,Object? projectName = freezed,Object? projectKind = freezed,Object? worldName = freezed,Object? sourceCharacterName = freezed,Object? sourceCharacterId = freezed,Object? updatedAt = freezed,Object? worldId = freezed,Object? isCardDownloadable = null,Object? sortOrder = null,Object? fields = null,Object? traits = null,Object? quotes = null,Object? tags = null,Object? gallery = null,Object? linkedProjects = null,Object? projectGenres = null,}) {
   return _then(CharacterDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -400,8 +400,12 @@ as int?,projectName: freezed == projectName ? _self.projectName : projectName //
 as String?,projectKind: freezed == projectKind ? _self.projectKind : projectKind // ignore: cast_nullable_to_non_nullable
 as String?,worldName: freezed == worldName ? _self.worldName : worldName // ignore: cast_nullable_to_non_nullable
 as String?,sourceCharacterName: freezed == sourceCharacterName ? _self.sourceCharacterName : sourceCharacterName // ignore: cast_nullable_to_non_nullable
-as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as String?,fields: null == fields ? _self.fields : fields // ignore: cast_nullable_to_non_nullable
+as String?,sourceCharacterId: freezed == sourceCharacterId ? _self.sourceCharacterId : sourceCharacterId // ignore: cast_nullable_to_non_nullable
+as int?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as String?,worldId: freezed == worldId ? _self.worldId : worldId // ignore: cast_nullable_to_non_nullable
+as int?,isCardDownloadable: null == isCardDownloadable ? _self.isCardDownloadable : isCardDownloadable // ignore: cast_nullable_to_non_nullable
+as bool,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,fields: null == fields ? _self.fields : fields // ignore: cast_nullable_to_non_nullable
 as List<CharacterField>,traits: null == traits ? _self.traits : traits // ignore: cast_nullable_to_non_nullable
 as List<Trait>,quotes: null == quotes ? _self.quotes : quotes // ignore: cast_nullable_to_non_nullable
 as List<Quote>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
@@ -493,10 +497,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String? nameEn,  String? tagline,  String? quote,  String? themeColor,  int? portraitAssetId,  String? bodyMd,  String visibility, @IntBool()  bool isFavorite,  int? projectId,  String? projectName,  String? projectKind,  String? worldName,  String? sourceCharacterName,  String? updatedAt,  List<CharacterField> fields,  List<Trait> traits,  List<Quote> quotes,  List<String> tags,  List<GalleryImage> gallery,  List<LinkedProject> linkedProjects,  List<Genre> projectGenres)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String? nameEn,  String? tagline,  String? quote,  String? themeColor,  int? portraitAssetId,  String? bodyMd,  String visibility, @IntBool()  bool isFavorite,  int? projectId,  String? projectName,  String? projectKind,  String? worldName,  String? sourceCharacterName,  int? sourceCharacterId,  String? updatedAt,  int? worldId, @IntBool()  bool isCardDownloadable,  int sortOrder,  List<CharacterField> fields,  List<Trait> traits,  List<Quote> quotes,  List<String> tags,  List<GalleryImage> gallery,  List<LinkedProject> linkedProjects,  List<Genre> projectGenres)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CharacterDetail() when $default != null:
-return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that.themeColor,_that.portraitAssetId,_that.bodyMd,_that.visibility,_that.isFavorite,_that.projectId,_that.projectName,_that.projectKind,_that.worldName,_that.sourceCharacterName,_that.updatedAt,_that.fields,_that.traits,_that.quotes,_that.tags,_that.gallery,_that.linkedProjects,_that.projectGenres);case _:
+return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that.themeColor,_that.portraitAssetId,_that.bodyMd,_that.visibility,_that.isFavorite,_that.projectId,_that.projectName,_that.projectKind,_that.worldName,_that.sourceCharacterName,_that.sourceCharacterId,_that.updatedAt,_that.worldId,_that.isCardDownloadable,_that.sortOrder,_that.fields,_that.traits,_that.quotes,_that.tags,_that.gallery,_that.linkedProjects,_that.projectGenres);case _:
   return orElse();
 
 }
@@ -514,10 +518,10 @@ return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String? nameEn,  String? tagline,  String? quote,  String? themeColor,  int? portraitAssetId,  String? bodyMd,  String visibility, @IntBool()  bool isFavorite,  int? projectId,  String? projectName,  String? projectKind,  String? worldName,  String? sourceCharacterName,  String? updatedAt,  List<CharacterField> fields,  List<Trait> traits,  List<Quote> quotes,  List<String> tags,  List<GalleryImage> gallery,  List<LinkedProject> linkedProjects,  List<Genre> projectGenres)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String? nameEn,  String? tagline,  String? quote,  String? themeColor,  int? portraitAssetId,  String? bodyMd,  String visibility, @IntBool()  bool isFavorite,  int? projectId,  String? projectName,  String? projectKind,  String? worldName,  String? sourceCharacterName,  int? sourceCharacterId,  String? updatedAt,  int? worldId, @IntBool()  bool isCardDownloadable,  int sortOrder,  List<CharacterField> fields,  List<Trait> traits,  List<Quote> quotes,  List<String> tags,  List<GalleryImage> gallery,  List<LinkedProject> linkedProjects,  List<Genre> projectGenres)  $default,) {final _that = this;
 switch (_that) {
 case _CharacterDetail():
-return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that.themeColor,_that.portraitAssetId,_that.bodyMd,_that.visibility,_that.isFavorite,_that.projectId,_that.projectName,_that.projectKind,_that.worldName,_that.sourceCharacterName,_that.updatedAt,_that.fields,_that.traits,_that.quotes,_that.tags,_that.gallery,_that.linkedProjects,_that.projectGenres);case _:
+return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that.themeColor,_that.portraitAssetId,_that.bodyMd,_that.visibility,_that.isFavorite,_that.projectId,_that.projectName,_that.projectKind,_that.worldName,_that.sourceCharacterName,_that.sourceCharacterId,_that.updatedAt,_that.worldId,_that.isCardDownloadable,_that.sortOrder,_that.fields,_that.traits,_that.quotes,_that.tags,_that.gallery,_that.linkedProjects,_that.projectGenres);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -534,10 +538,10 @@ return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String? nameEn,  String? tagline,  String? quote,  String? themeColor,  int? portraitAssetId,  String? bodyMd,  String visibility, @IntBool()  bool isFavorite,  int? projectId,  String? projectName,  String? projectKind,  String? worldName,  String? sourceCharacterName,  String? updatedAt,  List<CharacterField> fields,  List<Trait> traits,  List<Quote> quotes,  List<String> tags,  List<GalleryImage> gallery,  List<LinkedProject> linkedProjects,  List<Genre> projectGenres)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String? nameEn,  String? tagline,  String? quote,  String? themeColor,  int? portraitAssetId,  String? bodyMd,  String visibility, @IntBool()  bool isFavorite,  int? projectId,  String? projectName,  String? projectKind,  String? worldName,  String? sourceCharacterName,  int? sourceCharacterId,  String? updatedAt,  int? worldId, @IntBool()  bool isCardDownloadable,  int sortOrder,  List<CharacterField> fields,  List<Trait> traits,  List<Quote> quotes,  List<String> tags,  List<GalleryImage> gallery,  List<LinkedProject> linkedProjects,  List<Genre> projectGenres)?  $default,) {final _that = this;
 switch (_that) {
 case _CharacterDetail() when $default != null:
-return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that.themeColor,_that.portraitAssetId,_that.bodyMd,_that.visibility,_that.isFavorite,_that.projectId,_that.projectName,_that.projectKind,_that.worldName,_that.sourceCharacterName,_that.updatedAt,_that.fields,_that.traits,_that.quotes,_that.tags,_that.gallery,_that.linkedProjects,_that.projectGenres);case _:
+return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that.themeColor,_that.portraitAssetId,_that.bodyMd,_that.visibility,_that.isFavorite,_that.projectId,_that.projectName,_that.projectKind,_that.worldName,_that.sourceCharacterName,_that.sourceCharacterId,_that.updatedAt,_that.worldId,_that.isCardDownloadable,_that.sortOrder,_that.fields,_that.traits,_that.quotes,_that.tags,_that.gallery,_that.linkedProjects,_that.projectGenres);case _:
   return null;
 
 }
@@ -549,7 +553,7 @@ return $default(_that.id,_that.name,_that.nameEn,_that.tagline,_that.quote,_that
 @JsonSerializable()
 
 class _CharacterDetail extends CharacterDetail {
-  const _CharacterDetail({required this.id, required this.name, this.nameEn, this.tagline, this.quote, this.themeColor, this.portraitAssetId, this.bodyMd, this.visibility = 'private', @IntBool() this.isFavorite = false, this.projectId, this.projectName, this.projectKind, this.worldName, this.sourceCharacterName, this.updatedAt,  List<CharacterField> fields = const [],  List<Trait> traits = const [],  List<Quote> quotes = const [],  List<String> tags = const [],  List<GalleryImage> gallery = const [],  List<LinkedProject> linkedProjects = const [],  List<Genre> projectGenres = const []}): _fields = fields,_traits = traits,_quotes = quotes,_tags = tags,_gallery = gallery,_linkedProjects = linkedProjects,_projectGenres = projectGenres,super._();
+  const _CharacterDetail({required this.id, required this.name, this.nameEn, this.tagline, this.quote, this.themeColor, this.portraitAssetId, this.bodyMd, this.visibility = 'private', @IntBool() this.isFavorite = false, this.projectId, this.projectName, this.projectKind, this.worldName, this.sourceCharacterName, this.sourceCharacterId, this.updatedAt, this.worldId, @IntBool() this.isCardDownloadable = false, this.sortOrder = 0,  List<CharacterField> fields = const [],  List<Trait> traits = const [],  List<Quote> quotes = const [],  List<String> tags = const [],  List<GalleryImage> gallery = const [],  List<LinkedProject> linkedProjects = const [],  List<Genre> projectGenres = const []}): _fields = fields,_traits = traits,_quotes = quotes,_tags = tags,_gallery = gallery,_linkedProjects = linkedProjects,_projectGenres = projectGenres,super._();
   factory _CharacterDetail.fromJson(Map<String, dynamic> json) => _$CharacterDetailFromJson(json);
 
 @override final  int id;
@@ -567,7 +571,11 @@ class _CharacterDetail extends CharacterDetail {
 @override final  String? projectKind;
 @override final  String? worldName;
 @override final  String? sourceCharacterName;
+@override final  int? sourceCharacterId;
 @override final  String? updatedAt;
+@override final  int? worldId;
+@override@JsonKey()@IntBool() final  bool isCardDownloadable;
+@override@JsonKey() final  int sortOrder;
  final  List<CharacterField> _fields;
 @override@JsonKey() List<CharacterField> get fields {
   if (_fields is EqualUnmodifiableListView) return _fields;
@@ -631,16 +639,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CharacterDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.tagline, tagline) || other.tagline == tagline)&&(identical(other.quote, quote) || other.quote == quote)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.portraitAssetId, portraitAssetId) || other.portraitAssetId == portraitAssetId)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.projectKind, projectKind) || other.projectKind == projectKind)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.sourceCharacterName, sourceCharacterName) || other.sourceCharacterName == sourceCharacterName)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._fields, _fields)&&const DeepCollectionEquality().equals(other._traits, _traits)&&const DeepCollectionEquality().equals(other._quotes, _quotes)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._gallery, _gallery)&&const DeepCollectionEquality().equals(other._linkedProjects, _linkedProjects)&&const DeepCollectionEquality().equals(other._projectGenres, _projectGenres));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CharacterDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameEn, nameEn) || other.nameEn == nameEn)&&(identical(other.tagline, tagline) || other.tagline == tagline)&&(identical(other.quote, quote) || other.quote == quote)&&(identical(other.themeColor, themeColor) || other.themeColor == themeColor)&&(identical(other.portraitAssetId, portraitAssetId) || other.portraitAssetId == portraitAssetId)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.isFavorite, isFavorite) || other.isFavorite == isFavorite)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.projectKind, projectKind) || other.projectKind == projectKind)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.sourceCharacterName, sourceCharacterName) || other.sourceCharacterName == sourceCharacterName)&&(identical(other.sourceCharacterId, sourceCharacterId) || other.sourceCharacterId == sourceCharacterId)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.worldId, worldId) || other.worldId == worldId)&&(identical(other.isCardDownloadable, isCardDownloadable) || other.isCardDownloadable == isCardDownloadable)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&const DeepCollectionEquality().equals(other._fields, _fields)&&const DeepCollectionEquality().equals(other._traits, _traits)&&const DeepCollectionEquality().equals(other._quotes, _quotes)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._gallery, _gallery)&&const DeepCollectionEquality().equals(other._linkedProjects, _linkedProjects)&&const DeepCollectionEquality().equals(other._projectGenres, _projectGenres));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,name,nameEn,tagline,quote,themeColor,portraitAssetId,bodyMd,visibility,isFavorite,projectId,projectName,projectKind,worldName,sourceCharacterName,updatedAt,const DeepCollectionEquality().hash(_fields),const DeepCollectionEquality().hash(_traits),const DeepCollectionEquality().hash(_quotes),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_gallery),const DeepCollectionEquality().hash(_linkedProjects),const DeepCollectionEquality().hash(_projectGenres)]);
+int get hashCode => Object.hashAll([runtimeType,id,name,nameEn,tagline,quote,themeColor,portraitAssetId,bodyMd,visibility,isFavorite,projectId,projectName,projectKind,worldName,sourceCharacterName,sourceCharacterId,updatedAt,worldId,isCardDownloadable,sortOrder,const DeepCollectionEquality().hash(_fields),const DeepCollectionEquality().hash(_traits),const DeepCollectionEquality().hash(_quotes),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_gallery),const DeepCollectionEquality().hash(_linkedProjects),const DeepCollectionEquality().hash(_projectGenres)]);
 
 @override
 String toString() {
-  return 'CharacterDetail(id: $id, name: $name, nameEn: $nameEn, tagline: $tagline, quote: $quote, themeColor: $themeColor, portraitAssetId: $portraitAssetId, bodyMd: $bodyMd, visibility: $visibility, isFavorite: $isFavorite, projectId: $projectId, projectName: $projectName, projectKind: $projectKind, worldName: $worldName, sourceCharacterName: $sourceCharacterName, updatedAt: $updatedAt, fields: $fields, traits: $traits, quotes: $quotes, tags: $tags, gallery: $gallery, linkedProjects: $linkedProjects, projectGenres: $projectGenres)';
+  return 'CharacterDetail(id: $id, name: $name, nameEn: $nameEn, tagline: $tagline, quote: $quote, themeColor: $themeColor, portraitAssetId: $portraitAssetId, bodyMd: $bodyMd, visibility: $visibility, isFavorite: $isFavorite, projectId: $projectId, projectName: $projectName, projectKind: $projectKind, worldName: $worldName, sourceCharacterName: $sourceCharacterName, sourceCharacterId: $sourceCharacterId, updatedAt: $updatedAt, worldId: $worldId, isCardDownloadable: $isCardDownloadable, sortOrder: $sortOrder, fields: $fields, traits: $traits, quotes: $quotes, tags: $tags, gallery: $gallery, linkedProjects: $linkedProjects, projectGenres: $projectGenres)';
 }
 
 
@@ -651,7 +659,7 @@ abstract mixin class _$CharacterDetailCopyWith<$Res> implements $CharacterDetail
   factory _$CharacterDetailCopyWith(_CharacterDetail value, $Res Function(_CharacterDetail) _then) = __$CharacterDetailCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String? nameEn, String? tagline, String? quote, String? themeColor, int? portraitAssetId, String? bodyMd, String visibility,@IntBool() bool isFavorite, int? projectId, String? projectName, String? projectKind, String? worldName, String? sourceCharacterName, String? updatedAt, List<CharacterField> fields, List<Trait> traits, List<Quote> quotes, List<String> tags, List<GalleryImage> gallery, List<LinkedProject> linkedProjects, List<Genre> projectGenres
+ int id, String name, String? nameEn, String? tagline, String? quote, String? themeColor, int? portraitAssetId, String? bodyMd, String visibility,@IntBool() bool isFavorite, int? projectId, String? projectName, String? projectKind, String? worldName, String? sourceCharacterName, int? sourceCharacterId, String? updatedAt, int? worldId,@IntBool() bool isCardDownloadable, int sortOrder, List<CharacterField> fields, List<Trait> traits, List<Quote> quotes, List<String> tags, List<GalleryImage> gallery, List<LinkedProject> linkedProjects, List<Genre> projectGenres
 });
 
 
@@ -668,7 +676,7 @@ class __$CharacterDetailCopyWithImpl<$Res>
 
 /// Create a copy of CharacterDetail
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? nameEn = freezed,Object? tagline = freezed,Object? quote = freezed,Object? themeColor = freezed,Object? portraitAssetId = freezed,Object? bodyMd = freezed,Object? visibility = null,Object? isFavorite = null,Object? projectId = freezed,Object? projectName = freezed,Object? projectKind = freezed,Object? worldName = freezed,Object? sourceCharacterName = freezed,Object? updatedAt = freezed,Object? fields = null,Object? traits = null,Object? quotes = null,Object? tags = null,Object? gallery = null,Object? linkedProjects = null,Object? projectGenres = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? nameEn = freezed,Object? tagline = freezed,Object? quote = freezed,Object? themeColor = freezed,Object? portraitAssetId = freezed,Object? bodyMd = freezed,Object? visibility = null,Object? isFavorite = null,Object? projectId = freezed,Object? projectName = freezed,Object? projectKind = freezed,Object? worldName = freezed,Object? sourceCharacterName = freezed,Object? sourceCharacterId = freezed,Object? updatedAt = freezed,Object? worldId = freezed,Object? isCardDownloadable = null,Object? sortOrder = null,Object? fields = null,Object? traits = null,Object? quotes = null,Object? tags = null,Object? gallery = null,Object? linkedProjects = null,Object? projectGenres = null,}) {
   return _then(_CharacterDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -685,8 +693,12 @@ as int?,projectName: freezed == projectName ? _self.projectName : projectName //
 as String?,projectKind: freezed == projectKind ? _self.projectKind : projectKind // ignore: cast_nullable_to_non_nullable
 as String?,worldName: freezed == worldName ? _self.worldName : worldName // ignore: cast_nullable_to_non_nullable
 as String?,sourceCharacterName: freezed == sourceCharacterName ? _self.sourceCharacterName : sourceCharacterName // ignore: cast_nullable_to_non_nullable
-as String?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as String?,fields: null == fields ? _self._fields : fields // ignore: cast_nullable_to_non_nullable
+as String?,sourceCharacterId: freezed == sourceCharacterId ? _self.sourceCharacterId : sourceCharacterId // ignore: cast_nullable_to_non_nullable
+as int?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as String?,worldId: freezed == worldId ? _self.worldId : worldId // ignore: cast_nullable_to_non_nullable
+as int?,isCardDownloadable: null == isCardDownloadable ? _self.isCardDownloadable : isCardDownloadable // ignore: cast_nullable_to_non_nullable
+as bool,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,fields: null == fields ? _self._fields : fields // ignore: cast_nullable_to_non_nullable
 as List<CharacterField>,traits: null == traits ? _self._traits : traits // ignore: cast_nullable_to_non_nullable
 as List<Trait>,quotes: null == quotes ? _self._quotes : quotes // ignore: cast_nullable_to_non_nullable
 as List<Quote>,tags: null == tags ? _self._tags : tags // ignore: cast_nullable_to_non_nullable

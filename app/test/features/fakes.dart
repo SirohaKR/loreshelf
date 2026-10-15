@@ -1,9 +1,12 @@
 // 위젯 테스트용 가짜 리포지토리 — domain/의 인터페이스만 구현하면 화면은 진짜와 구별하지 못한다.
 // (Java로 치면 interface의 테스트용 구현 / Mockito 없이 손으로 만든 mock)
+import 'dart:typed_data';
+
 import 'package:loreshelf_app/core/network/api_client.dart';
 import 'package:loreshelf_app/features/auth/domain/auth_repository.dart';
 import 'package:loreshelf_app/features/auth/domain/user.dart';
 import 'package:loreshelf_app/features/characters/domain/character.dart';
+import 'package:loreshelf_app/features/characters/domain/character_draft.dart';
 import 'package:loreshelf_app/features/characters/domain/character_scope.dart';
 import 'package:loreshelf_app/features/characters/domain/characters_repository.dart';
 import 'package:loreshelf_app/features/home/domain/home_repository.dart';
@@ -84,5 +87,56 @@ class FakeCharactersRepository implements CharactersRepository {
   }
 
   @override
-  Future<CharacterDetail> fetchDetail(int id) async => CharacterDetail(id: id, name: id == 1 ? lia.name : mir.name);
+  Future<CharacterDetail> fetchDetail(int id) async =>
+      details[id] ?? CharacterDetail(id: id, name: id == 1 ? lia.name : mir.name);
+
+  // ── 고치기: 무엇이 불렸는지 calls에 적고, 결과는 details에 반영 ──
+  final details = <int, CharacterDetail>{};
+  final calls = <String>[];
+  final saved = <Map<String, Object?>>[];
+  var _nextId = 100;
+
+  @override
+  Future<CharacterDetail> save(int? id, CharacterDraft draft) async {
+    if (draft.name == '실패') throw ApiException(400, '이름이 이상해요');
+    saved.add(draft.toPayload());
+    final cid = id ?? _nextId++;
+    return details[cid] = CharacterDetail(id: cid, name: draft.name, tags: draft.tags, portraitAssetId: draft.portraitAssetId);
+  }
+
+  @override
+  Future<int> uploadImage(Uint8List bytes, String fileName) async {
+    calls.add('upload $fileName');
+    return 77;
+  }
+
+  @override
+  Future<CharacterDetail> addToGallery(int id, int assetId, {bool setPortrait = false}) async {
+    calls.add('gallery+ $assetId${setPortrait ? ' portrait' : ''}');
+    return fetchDetail(id);
+  }
+
+  @override
+  Future<CharacterDetail> removeFromGallery(int id, int assetId) async {
+    calls.add('gallery- $assetId');
+    return fetchDetail(id);
+  }
+
+  @override
+  Future<void> setFavorite(int id, bool favorite) async => calls.add('favorite $id $favorite');
+
+  @override
+  Future<CharacterDetail> move(int id, int? projectId) async {
+    calls.add('move $id $projectId');
+    return fetchDetail(id);
+  }
+
+  @override
+  Future<CharacterDetail> fork(int id, int? projectId) async {
+    calls.add('fork $id $projectId');
+    return CharacterDetail(id: _nextId++, name: '${(await fetchDetail(id)).name} (분기)');
+  }
+
+  @override
+  Future<void> delete(int id) async => calls.add('delete $id');
 }

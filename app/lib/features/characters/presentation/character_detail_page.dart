@@ -8,6 +8,7 @@ import '../../../core/widgets/app_error_toast.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../gen/presentation/widgets/character_gen_tab.dart';
 import 'character_detail_provider.dart';
+import 'character_edit_page.dart';
 import 'widgets/character_gallery.dart';
 import 'widgets/character_hero.dart';
 import 'widgets/character_profile.dart';
@@ -28,7 +29,18 @@ class CharacterDetailPage extends HookConsumerWidget {
     useListenable(tabs);
 
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.name ?? '캐릭터')),
+      appBar: AppBar(
+        title: Text(detail.value?.name ?? '캐릭터'),
+        actions: [
+          if (detail.value != null) ...[
+            IconButton(
+              tooltip: '편집',
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () => CharacterEditPage.open(context, id: id),
+            ),
+          ],
+        ],
+      ),
       body: AsyncValueView(
         value: detail,
         onRetry: () => ref.invalidate(characterDetailProvider(id)),

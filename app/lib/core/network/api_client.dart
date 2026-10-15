@@ -2,6 +2,7 @@
 // (웹으로 띄울 땐 브라우저가 쿠키를 알아서 처리하므로 손대지 않는다.)
 // 각 기능의 data/ 폴더(리포지토리 구현)가 이걸 써서 서버와 이야기한다.
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
@@ -57,11 +58,28 @@ class ApiClient {
   Future<Map<String, Object?>> post(String path, [Object? body]) async =>
       ((await _send('POST', path, body: body)) as Map?)?.cast<String, Object?>() ?? const {};
 
-  Future<Object?> _send(String method, String path, {Map<String, String>? query, Object? body}) async {
+  Future<Map<String, Object?>> put(String path, [Object? body]) async =>
+      ((await _send('PUT', path, body: body)) as Map?)?.cast<String, Object?>() ?? const {};
+
+  Future<Map<String, Object?>> delete(String path) async =>
+      ((await _send('DELETE', path)) as Map?)?.cast<String, Object?>() ?? const {};
+
+  /// 파일 올리기 — 본문 = 파일 바이트 그대로, 파일 이름은 x-file-name 헤더 (웹 api.upload와 같음)
+  Future<Map<String, Object?>> upload(String path, Uint8List bytes, String fileName) async =>
+      ((await _send('POST', path, bytes: bytes, headers: {
+        'content-type': 'application/octet-stream',
+        'x-file-name': Uri.encodeComponent(fileName),
+      })) as Map).cast<String, Object?>();
+
+  Future<Object?> _send(String method, String path,
+      {Map<String, String>? query, Object? body, Uint8List? bytes, Map<String, String>? headers}) async {
     final req = http.Request(method, uri(path, query));
     req.headers['accept'] = 'application/json';
     if (!kIsWeb && cookie != null) req.headers['cookie'] = cookie!;
-    if (body != null) {
+    if (headers != null) req.headers.addAll(headers);
+    if (bytes != null) {
+      req.bodyBytes = bytes;
+    } else if (body != null) {
       req.headers['content-type'] = 'application/json';
       req.body = jsonEncode(body);
     }

@@ -235,6 +235,15 @@ class AuthSession extends _$AuthSession {
 
 로그인 버튼의 "보내는 중/오류"는 따로 `LoginController`(`login_provider.dart`, 상태는 `LoginState`)가 맡아요. 로그인 화면이 사라지면 같이 버려지는(autoDispose) 짧은 상태예요.
 
+### 따라가 보기 ⑤ — 편집 화면: `features/characters/presentation/character_edit_page.dart`
+
+- **폼 상태를 hooks로**: 편집 중인 값 전체를 freezed 클래스 `CharacterDraft` 하나로 만들고 `final draft = useState(initial)`로 들고 있어요. 입력칸은 `TextFormField(initialValue: ..., onChanged: (v) => draft.value = draft.value.copyWith(name: v))` — 컨트롤러를 칸마다 만들 필요가 없어요. Java로 치면 "불변 DTO를 매번 새로 만들어 갈아 끼우는" 방식이에요.
+- **줄 목록(기본 정보·성격 축·대사)**: 줄마다 `key`(화면용 번호)를 붙이고 위젯에 `ValueKey(row.key)`를 줘요. 가운데 줄을 지워도 아래 줄의 입력칸 내용이 한 칸씩 밀려 섞이지 않아요.
+- **버튼 안에서는 최신 값으로**: `onPressed`에 넘긴 함수는 "그 화면을 그린 순간"의 지역 변수를 기억해요. 저장할 땐 `d`(그린 때 값) 대신 `draft.value`(지금 값)를 읽어요.
+- **AsyncNotifier로 저장하기** (`character_edit_provider.dart`의 `CharacterSaver`): `build()`는 `null`(아직 아무것도 안 함), `save()`에서 `state = AsyncLoading()` → `state = await AsyncValue.guard(() => repo.save(...))`. 화면은 `ref.watch(characterSaverProvider)` 하나로 "저장 중이면 버튼 막기(`isLoading`)·실패 문구(`error`)"를 다 해결해요. 기다린 뒤엔 `if (!ref.mounted) return`으로 화면이 닫혔는지 확인해요.
+- **바꾼 뒤 다시 받기**: 저장·옮기기·이미지 추가 뒤엔 `ref.invalidate(characterDetailProvider(id))`처럼 그 데이터를 보여 주던 provider를 버려요(`refreshCharacterViews`). 보고 있던 화면이 알아서 다시 받아요.
+- **파일 고르기**: `core/utils/pick_image.dart`의 `pickImage`는 함수 변수라서 테스트에서 가짜로 바꿔 끼워요(`pickImage = () async => (bytes: ..., name: 'a.png')`).
+
 ### Riverpod 3의 자동 재시도
 실패한 provider를 자동으로 다시 시도해요. 서버가 준 오류(401·404)는 다시 해도 같으니 `main.dart`의 `retry:`에서 `ApiException`이면 바로 멈추게 했어요.
 
@@ -331,5 +340,4 @@ dart run build_runner watch --force-jit
 ## 8. 해 볼 만한 연습
 
 1. 캐릭터 목록에 "즐겨찾기만" 칩 — 서버는 `?favorite=1`을 지원해요. `CharacterListState`에 `favoriteOnly` 추가 → 리포지토리 인터페이스·구현에 매개변수 추가 → build_runner.
-2. 즐겨찾기 별 누르기 — `PUT /api/characters/:id/favorite`. 리포지토리에 `toggleFavorite(id)` 추가, 누른 뒤 `ref.invalidate(characterDetailProvider(id))`.
-3. 프로젝트 목록에 장르 필터 — `GET /api/genres` + `GET /api/projects?genre_id=`. `projects/presentation/project_list_state.dart`를 만들어 보기.
+2. 프로젝트 목록에 장르 필터 — `GET /api/genres` + `GET /api/projects?genre_id=`. `projects/presentation/project_list_state.dart`를 만들어 보기.

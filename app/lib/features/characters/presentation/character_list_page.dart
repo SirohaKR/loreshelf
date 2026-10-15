@@ -14,6 +14,8 @@ import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/empty_note.dart';
 import '../../projects/presentation/project_list_provider.dart';
 import '../domain/character_scope.dart';
+import 'character_detail_page.dart';
+import 'character_edit_page.dart';
 import 'character_list_provider.dart';
 import 'character_list_state.dart';
 import 'widgets/character_card.dart';
@@ -53,6 +55,14 @@ class CharacterListPage extends HookConsumerWidget {
                     runSpacing: 12,
                     children: [
                       const Text('캐릭터', style: AppTextStyles.pageTitle),
+                      FilledButton.icon(
+                        onPressed: () async {
+                          final made = await CharacterEditPage.open(context);
+                          if (made != null && context.mounted) await CharacterDetailPage.open(context, made.id);
+                        },
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('새 캐릭터'),
+                      ),
                       ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 360),
                         child: TextField(
