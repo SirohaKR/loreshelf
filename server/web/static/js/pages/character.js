@@ -60,7 +60,9 @@ export async function render(el, { id }, query, app) {
           : ''}
         ${c.traits.length
           ? html`<div class="card"><h3>성격 축</h3>${c.traits.map(
-              (t) => html`<div class="trait"><div class="row"><span>${t.left_label}</span><span>${t.right_label}</span></div><div class="track"><i style="left:${Number(t.value_percent)}%"></i></div></div>`,
+              (t) => t.right_label
+                ? html`<div class="trait"><div class="row"><span>${t.left_label}</span><span>${t.right_label}</span></div><div class="track"><i style="left:${Number(t.value_percent)}%"></i></div></div>`
+                : html`<div class="trait one"><div class="row"><span>${t.left_label}</span><span>${Number(t.value_percent)}%</span></div><div class="track"><b style="width:${Number(t.value_percent)}%"></b></div></div>`,
             )}</div>`
           : ''}
       </div>

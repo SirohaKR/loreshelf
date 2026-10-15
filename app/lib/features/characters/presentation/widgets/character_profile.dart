@@ -71,7 +71,7 @@ class CharacterProfile extends StatelessWidget {
   }
 }
 
-/// 성격 막대 — 내향 ●──── 외향 (CSS .trait)
+/// 성격 막대 — 내향 ●──── 외향 (CSS .trait). 오른쪽이 없으면 강도 막대 — 신중함 ████░ 80% (CSS .trait.one)
 class TraitBar extends StatelessWidget {
   const TraitBar(this.t, {super.key});
   final Trait t;
@@ -79,6 +79,9 @@ class TraitBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
+    final percent = t.valuePercent.clamp(0, 100);
+    final right = t.rightLabel;
+    final track = DecoratedBox(decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(3)));
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
@@ -87,29 +90,43 @@ class TraitBar extends StatelessWidget {
             children: [
               Text(t.leftLabel, style: AppTextStyles.bodySmall),
               const Spacer(),
-              Text(t.rightLabel, style: AppTextStyles.bodySmall),
+              if (right != null)
+                Text(right, style: AppTextStyles.bodySmall)
+              else
+                Text('$percent%', style: AppTextStyles.bodySmall.copyWith(color: c.text, fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 5),
-          LayoutBuilder(
-            builder: (context, box) => SizedBox(
-              height: 12,
+          if (right == null)
+            SizedBox(
+              height: 6,
               child: Stack(
-                clipBehavior: Clip.none,
                 children: [
-                  Positioned.fill(
-                    top: 3,
-                    bottom: 3,
-                    child: DecoratedBox(decoration: BoxDecoration(color: c.surface2, borderRadius: BorderRadius.circular(3))),
-                  ),
-                  Positioned(
-                    left: box.maxWidth * t.valuePercent.clamp(0, 100) / 100 - 6,
-                    child: Container(width: 12, height: 12, decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle)),
+                  Positioned.fill(child: track),
+                  FractionallySizedBox(
+                    widthFactor: percent / 100,
+                    heightFactor: 1,
+                    child: DecoratedBox(decoration: BoxDecoration(color: c.accent, borderRadius: BorderRadius.circular(3))),
                   ),
                 ],
               ),
+            )
+          else
+            LayoutBuilder(
+              builder: (context, box) => SizedBox(
+                height: 12,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fill(top: 3, bottom: 3, child: track),
+                    Positioned(
+                      left: box.maxWidth * percent / 100 - 6,
+                      child: Container(width: 12, height: 12, decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle)),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );

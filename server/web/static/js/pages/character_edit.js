@@ -14,7 +14,7 @@ const fieldRow = (f = {}) => html`<div class="edit-row field" data-row="field">
 const traitRow = (t = {}) => html`<div class="edit-row trait" data-row="trait">
   <input type="text" data-k="left_label" value="${t.left_label ?? ''}" placeholder="왼쪽 (예: 내향)" maxlength="20">
   <input type="range" data-k="value_percent" min="0" max="100" value="${t.value_percent ?? 50}">
-  <input type="text" data-k="right_label" value="${t.right_label ?? ''}" placeholder="오른쪽 (예: 외향)" maxlength="20">
+  <input type="text" data-k="right_label" value="${t.right_label ?? ''}" placeholder="반대 성격 (예: 외향)" maxlength="20">
   <button type="button" class="x-btn" data-del title="지우기">✕</button></div>`;
 
 const quoteRow = (q = {}) => html`<div class="edit-row quote" data-row="quote">
@@ -71,6 +71,7 @@ export async function render(el, params, query, app) {
       </div>
 
       <div class="card"><h3>성격 축</h3>
+        <p class="card-hint">양 끝에 반대되는 성격을 쓰고 슬라이더로 위치를 정해요. 오른쪽을 비우면 한쪽 성격의 강도로 저장돼요</p>
         <div class="rows" data-rows="trait">${v.traits.map(traitRow)}</div>
         <button type="button" class="btn sm" style="margin-top:10px" data-add="trait">+ 축 추가</button>
       </div>

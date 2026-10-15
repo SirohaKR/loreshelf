@@ -976,7 +976,7 @@ as bool,
 /// @nodoc
 mixin _$Trait {
 
- int get id; String get leftLabel; String get rightLabel; int get valuePercent;
+ int get id; String get leftLabel; String? get rightLabel; int get valuePercent;
 /// Create a copy of Trait
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1009,7 +1009,7 @@ abstract mixin class $TraitCopyWith<$Res>  {
   factory $TraitCopyWith(Trait value, $Res Function(Trait) _then) = _$TraitCopyWithImpl;
 @useResult
 $Res call({
- int id, String leftLabel, String rightLabel, int valuePercent
+ int id, String leftLabel, String? rightLabel, int valuePercent
 });
 
 
@@ -1026,12 +1026,12 @@ class _$TraitCopyWithImpl<$Res>
 
 /// Create a copy of Trait
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? leftLabel = null,Object? rightLabel = null,Object? valuePercent = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? leftLabel = null,Object? rightLabel = freezed,Object? valuePercent = null,}) {
   return _then(Trait(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,leftLabel: null == leftLabel ? _self.leftLabel : leftLabel // ignore: cast_nullable_to_non_nullable
-as String,rightLabel: null == rightLabel ? _self.rightLabel : rightLabel // ignore: cast_nullable_to_non_nullable
-as String,valuePercent: null == valuePercent ? _self.valuePercent : valuePercent // ignore: cast_nullable_to_non_nullable
+as String,rightLabel: freezed == rightLabel ? _self.rightLabel : rightLabel // ignore: cast_nullable_to_non_nullable
+as String?,valuePercent: null == valuePercent ? _self.valuePercent : valuePercent // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }
@@ -1117,7 +1117,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String leftLabel,  String rightLabel,  int valuePercent)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String leftLabel,  String? rightLabel,  int valuePercent)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Trait() when $default != null:
 return $default(_that.id,_that.leftLabel,_that.rightLabel,_that.valuePercent);case _:
@@ -1138,7 +1138,7 @@ return $default(_that.id,_that.leftLabel,_that.rightLabel,_that.valuePercent);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String leftLabel,  String rightLabel,  int valuePercent)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String leftLabel,  String? rightLabel,  int valuePercent)  $default,) {final _that = this;
 switch (_that) {
 case _Trait():
 return $default(_that.id,_that.leftLabel,_that.rightLabel,_that.valuePercent);case _:
@@ -1158,7 +1158,7 @@ return $default(_that.id,_that.leftLabel,_that.rightLabel,_that.valuePercent);ca
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String leftLabel,  String rightLabel,  int valuePercent)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String leftLabel,  String? rightLabel,  int valuePercent)?  $default,) {final _that = this;
 switch (_that) {
 case _Trait() when $default != null:
 return $default(_that.id,_that.leftLabel,_that.rightLabel,_that.valuePercent);case _:
@@ -1173,12 +1173,12 @@ return $default(_that.id,_that.leftLabel,_that.rightLabel,_that.valuePercent);ca
 @JsonSerializable()
 
 class _Trait implements Trait {
-  const _Trait({required this.id, required this.leftLabel, required this.rightLabel, this.valuePercent = 50});
+  const _Trait({required this.id, required this.leftLabel, this.rightLabel, this.valuePercent = 50});
   factory _Trait.fromJson(Map<String, dynamic> json) => _$TraitFromJson(json);
 
 @override final  int id;
 @override final  String leftLabel;
-@override final  String rightLabel;
+@override final  String? rightLabel;
 @override@JsonKey() final  int valuePercent;
 
 /// Create a copy of Trait
@@ -1214,7 +1214,7 @@ abstract mixin class _$TraitCopyWith<$Res> implements $TraitCopyWith<$Res> {
   factory _$TraitCopyWith(_Trait value, $Res Function(_Trait) _then) = __$TraitCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String leftLabel, String rightLabel, int valuePercent
+ int id, String leftLabel, String? rightLabel, int valuePercent
 });
 
 
@@ -1231,12 +1231,12 @@ class __$TraitCopyWithImpl<$Res>
 
 /// Create a copy of Trait
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? leftLabel = null,Object? rightLabel = null,Object? valuePercent = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? leftLabel = null,Object? rightLabel = freezed,Object? valuePercent = null,}) {
   return _then(_Trait(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,leftLabel: null == leftLabel ? _self.leftLabel : leftLabel // ignore: cast_nullable_to_non_nullable
-as String,rightLabel: null == rightLabel ? _self.rightLabel : rightLabel // ignore: cast_nullable_to_non_nullable
-as String,valuePercent: null == valuePercent ? _self.valuePercent : valuePercent // ignore: cast_nullable_to_non_nullable
+as String,rightLabel: freezed == rightLabel ? _self.rightLabel : rightLabel // ignore: cast_nullable_to_non_nullable
+as String?,valuePercent: null == valuePercent ? _self.valuePercent : valuePercent // ignore: cast_nullable_to_non_nullable
 as int,
   ));
 }

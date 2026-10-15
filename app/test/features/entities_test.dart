@@ -22,6 +22,7 @@ void main() {
       ],
       'traits': [
         {'id': 1, 'left_label': '내향', 'right_label': '외향', 'value_percent': 28},
+        {'id': 2, 'left_label': '신중함', 'right_label': null, 'value_percent': 80},
       ],
       'quotes': [
         {'id': 1, 'body': '…따라오지 마.', 'situation': null, 'is_secret': 0},
@@ -40,7 +41,8 @@ void main() {
     expect(ch.isFavorite, isTrue);
     expect(ch.inLibrary, isFalse);
     expect(ch.fields.single.isSecret, isTrue);
-    expect(ch.traits.single.valuePercent, 28);
+    expect(ch.traits.first.valuePercent, 28);
+    expect(ch.traits.last.rightLabel, isNull, reason: '한쪽짜리 성격');
     expect(ch.quotes.single.isSecret, isFalse);
     expect(ch.gallery.single.originalName, 'Lia.png');
     expect(ch.projectGenres.single.name, '로맨스 판타지');

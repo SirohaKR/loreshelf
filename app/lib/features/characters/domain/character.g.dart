@@ -156,7 +156,7 @@ Map<String, dynamic> _$CharacterFieldToJson(_CharacterField instance) =>
 _Trait _$TraitFromJson(Map<String, dynamic> json) => _Trait(
   id: (json['id'] as num).toInt(),
   leftLabel: json['left_label'] as String,
-  rightLabel: json['right_label'] as String,
+  rightLabel: json['right_label'] as String?,
   valuePercent: (json['value_percent'] as num?)?.toInt() ?? 50,
 );
 

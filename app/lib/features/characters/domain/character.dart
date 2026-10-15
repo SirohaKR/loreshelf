@@ -86,13 +86,13 @@ abstract class CharacterField with _$CharacterField {
   factory CharacterField.fromJson(Map<String, Object?> json) => _$CharacterFieldFromJson(json);
 }
 
-/// 성격 막대 (내향 ←28%→ 외향)
+/// 성격 막대 (내향 ←28%→ 외향). rightLabel 이 null 이면 한쪽짜리 (신중함 80%)
 @freezed
 abstract class Trait with _$Trait {
   const factory Trait({
     required int id,
     required String leftLabel,
-    required String rightLabel,
+    String? rightLabel,
     @Default(50) int valuePercent,
   }) = _Trait;
 

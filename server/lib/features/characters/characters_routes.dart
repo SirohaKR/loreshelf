@@ -101,7 +101,7 @@ class CharactersRoutes {
         if (strOrNull(t['left_label']) != null || strOrNull(t['right_label']) != null)
           {
             'left_label': requireStr(t['left_label'], '성격 축 왼쪽', max: 20),
-            'right_label': requireStr(t['right_label'], '성격 축 오른쪽', max: 20),
+            'right_label': _short(t['right_label'], '성격 축 오른쪽', 20), // 비우면 한쪽짜리 (강도)
             'value_percent': (toIntOrNull(t['value_percent']) ?? 50).clamp(0, 100),
           },
     ];

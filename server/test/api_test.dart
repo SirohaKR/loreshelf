@@ -144,6 +144,27 @@ void main() {
       expect([for (final t in tags) t['name']], ['마법사']);
     });
 
+    test('성격 축: 오른쪽을 비우면 한쪽짜리(강도)로 저장, 왼쪽은 필수', () async {
+      final ch = await c.ok('POST', '/api/characters', {
+        'name': '세린',
+        'traits': [
+          {'left_label': '내향', 'right_label': '외향', 'value_percent': 30},
+          {'left_label': '신중함', 'right_label': '  ', 'value_percent': 80},
+          {'left_label': '차분함', 'value_percent': 120},
+        ],
+      });
+      final traits = (await c.ok('GET', '/api/characters/${ch['id']}'))['traits'] as List;
+      expect([for (final t in traits) [t['left_label'], t['right_label'], t['value_percent']]], [
+        ['내향', '외향', 30],
+        ['신중함', null, 80],
+        ['차분함', null, 100],
+      ]);
+      final bad = await c.call('PUT', '/api/characters/${ch['id']}', {
+        'name': '세린', 'traits': [{'left_label': '', 'right_label': '외향'}],
+      });
+      expect(bad.$1, 400, reason: '왼쪽 없이 오른쪽만은 안 됨');
+    });
+
     test('잘못된 값은 거부', () async {
       expect((await c.call('POST', '/api/characters', {'name': ''})).$1, 400);
       expect((await c.call('POST', '/api/characters', {'name': 'x', 'visibility': 'secret'})).$1, 400);
