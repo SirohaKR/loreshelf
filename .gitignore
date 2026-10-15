@@ -1,5 +1,7 @@
 .dart_tool/
 build/
-data/
 private/
 *.db
+# 서버 DB·업로드 이미지 (앞에 / 를 붙여서 이 위치만. 그냥 data/ 라고 쓰면 Flutter의 features/*/data/ 까지 무시된다)
+/data/
+/server/data/

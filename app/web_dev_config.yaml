@@ -1,0 +1,8 @@
+# `flutter run -d chrome` / `-d web-server` 로 띄울 때만 쓰는 개발용 설정.
+# 웹 앱이 /api/... 를 부르면 개발 서버(5091)로 넘겨 준다 → 같은 주소처럼 보여서 쿠키가 그대로 동작.
+server:
+  host: localhost
+  port: 5092
+  proxy:
+    - target: http://localhost:5091/
+      prefix: /api/

@@ -1,0 +1,9 @@
+# build_runner 설정 — 서버 JSON은 snake_case(project_id), Dart 필드는 camelCase(projectId).
+# field_rename: snake 가 둘을 자동으로 이어 줘서 @JsonKey(name: ...)를 일일이 안 붙여도 된다.
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          field_rename: snake
+          explicit_to_json: true

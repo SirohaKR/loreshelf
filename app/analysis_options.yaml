@@ -1,0 +1,19 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - web/**
+    - windows/**
+    # build_runner가 만든 파일 (freezed·json_serializable)
+    - lib/**/*.g.dart
+    - lib/**/*.freezed.dart
+  errors:
+    # freezed 클래스의 fromJson 생성자 매개변수에 붙이는 @JsonKey 경고 끄기
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    prefer_single_quotes: true
+    prefer_const_constructors: true

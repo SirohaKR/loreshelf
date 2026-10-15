@@ -4,7 +4,8 @@ FROM dart:3.13 AS build
 WORKDIR /src
 COPY pubspec.yaml pubspec.lock ./
 COPY server/pubspec.yaml server/
-RUN dart pub get
+# 작업 공간의 app/(Flutter 앱)은 서버 빌드에 필요 없고 이 이미지엔 Flutter가 없어서 목록에서 빼고 받는다
+RUN sed -i '/^  - app$/d' pubspec.yaml && dart pub get
 COPY server server
 RUN cd server && dart build cli -t bin/server.dart -o /out
 
