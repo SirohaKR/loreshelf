@@ -1,0 +1,11 @@
+services:
+  loreshelf:
+    build: .
+    container_name: loreshelf
+    restart: unless-stopped
+    ports:
+      - "5090:5000"
+    volumes:
+      # DB(loreshelf.db)와 올린 이미지(assets/). 컨테이너를 다시 빌드해도 남는다.
+      # Synology는 이 폴더를 자동으로 만들지 않으니 처음에 mkdir data 필요.
+      - ./data:/app/data

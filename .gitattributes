@@ -1,0 +1,4 @@
+# 줄바꿈은 LF로 통일 (NAS·Docker가 리눅스라서)
+* text=auto eol=lf
+*.png binary
+*.jpg binary
