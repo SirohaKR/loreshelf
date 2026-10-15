@@ -8,6 +8,7 @@ import 'package:loreshelf_app/core/theme/app_theme.dart';
 import 'package:loreshelf_app/core/utils/pick_image.dart';
 import 'package:loreshelf_app/features/characters/domain/character.dart';
 import 'package:loreshelf_app/features/characters/domain/character_draft.dart';
+import 'package:loreshelf_app/features/characters/presentation/character_detail_page.dart';
 import 'package:loreshelf_app/features/characters/presentation/character_edit_page.dart';
 
 import 'fakes.dart';
@@ -146,6 +147,62 @@ void main() {
       await tester.pumpAndSettle();
       expect(repo.saved.single['portrait_asset_id'], 77);
       expect(repo.saved.single['tagline'], '말하는 고양이');
+    });
+  });
+
+  group('캐릭터 화면 버튼', () {
+    Future<FakeCharactersRepository> pumpDetail(WidgetTester tester) async {
+      final repo = FakeCharactersRepository()..details[5] = const CharacterDetail(id: 5, name: '미르', projectId: 1);
+      tester.view.physicalSize = const Size(1200, 2000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(ProviderScope(
+        overrides: await fakeOverrides(user: me, characters: repo),
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(onPressed: () => CharacterDetailPage.open(context, 5), child: const Text('열기')),
+            ),
+          ),
+        ),
+      ));
+      await tester.tap(find.text('열기'));
+      await tester.pumpAndSettle();
+      return repo;
+    }
+
+    testWidgets('갤러리: 이미지 추가 칸을 누르면 올리고 갤러리에 넣는다', (tester) async {
+      final old = pickImage;
+      pickImage = () async => (bytes: Uint8List.fromList([1]), name: 'a.png');
+      addTearDown(() => pickImage = old);
+      final repo = await pumpDetail(tester);
+      await tester.tap(find.text('갤러리 0'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('이미지 추가'));
+      await tester.pumpAndSettle();
+      expect(repo.calls, ['upload a.png', 'gallery+ 77']);
+    });
+
+    testWidgets('즐겨찾기 별, 서재로 꺼내기, 휴지통으로(확인 후 화면 닫힘)', (tester) async {
+      final repo = await pumpDetail(tester);
+      await tester.tap(find.byTooltip('즐겨찾기'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('더 보기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('공용 서재로 꺼내기'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('더 보기'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('휴지통으로').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, '휴지통으로'));
+      await tester.pumpAndSettle();
+
+      expect(repo.calls, ['favorite 5 true', 'move 5 null', 'delete 5']);
+      expect(find.text('열기'), findsOneWidget);
     });
   });
 }
