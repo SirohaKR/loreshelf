@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 리아 벨로트</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .crumb { color: var(--muted); font-size: 12px; margin-bottom: 14px; }
+  .hero { display: flex; gap: 24px; align-items: flex-end; }
+  .hero .pt { width: 150px; aspect-ratio: 3/4; font-size: 30px; flex: none; }
+  .hero .info { flex: 1; min-width: 0; }
+  .hero .en { color: var(--muted); font-size: 13px; }
+  .hero .one { font-size: 15px; margin: 8px 0 12px; }
+  .hero .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+  .sw { width: 36px; height: 20px; border-radius: 10px; background: var(--ok); position: relative; }
+  .sw::after { content: ""; position: absolute; right: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 24px 0 20px; overflow-x: auto; }
+  .tabs a { padding: 10px 14px; font-size: 14px; color: var(--muted); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tabs a.on { color: var(--text); font-weight: 700; border-color: var(--accent); }
+  .cols { display: grid; grid-template-columns: 300px 1fr 320px; gap: 18px; align-items: start; }
+  .card h3 { font-size: 14px; margin: 0 0 12px; display: flex; justify-content: space-between; }
+  .card h3 small { color: var(--muted); font-weight: 400; }
+  .kv { display: grid; grid-template-columns: 70px 1fr; row-gap: 9px; font-size: 13px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+  .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+  .trait { margin-bottom: 12px; font-size: 12px; }
+  .trait .row { display: flex; justify-content: space-between; color: var(--muted); }
+  .trait .track { height: 6px; border-radius: 3px; background: var(--surface2); position: relative; margin-top: 5px; }
+  .trait .track i { position: absolute; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+  .quote { border-left: 3px solid var(--accent); background: var(--surface2); padding: 10px 14px; border-radius: 0 10px 10px 0; margin-bottom: 8px; font-size: 13px; }
+  .quote small { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
+  .rel { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 13px; }
+  .rel .pt { width: 34px; height: 34px; border-radius: 50%; font-size: 11px; flex: none; }
+  .rel .pt::before, .rel .pt::after { display: none; }
+  .rel b { display: block; font-size: 13px; }
+  .rel span { color: var(--muted); font-size: 12px; }
+  .gal { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .gal .pt { aspect-ratio: 1; font-size: 0; border-radius: 8px; }
+  .secret { position: relative; }
+  .secret p { filter: blur(5px); margin: 0; font-size: 13px; user-select: none; }
+  .secret .veil { position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: var(--muted); }
+  .prose { font-size: 13.5px; line-height: 1.75; }
+  .prose p { margin: 0 0 10px; }
+  .ver { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); padding: 5px 0; }
+  @media (max-width: 1300px) { .cols { grid-template-columns: 1fr 1fr; } .cols .col3 { grid-column: 1 / -1; } }
+  @media (max-width: 760px) {
+    .hero { flex-direction: column; align-items: center; text-align: center; gap: 14px; }
+    .hero .pt { width: 140px; }
+    .hero .chips, .hero .acts { justify-content: center; }
+    .cols { grid-template-columns: 1fr; gap: 12px; }
+    .tabs { margin: 18px -16px 14px; padding: 0 16px; }
+  }
+</style>
+</head>
+<body data-nav="캐릭터">
+<div class="app">
+  <main class="main">
+    <div class="top">
+      <div class="m-only icon-btn">←</div>
+      <div class="search d-only">⌕ 캐릭터, 설정, 대사 검색… <kbd>Ctrl K</kbd></div>
+      <div class="sp"></div>
+      <span class="chip d-only">자동 저장됨 · 방금</span>
+      <div class="icon-btn">☾</div>
+      <div class="m-only icon-btn">⋯</div>
+      <div class="avatar-me d-only">주</div>
+    </div>
+    <div class="crumb d-only">캐릭터 / 잿빛 왕관 / <b style="color:var(--text)">리아 벨로트</b></div>
+
+    <div class="hero">
+      <div class="pt c1">리아</div>
+      <div class="info">
+        <h1>리아 벨로트</h1>
+        <div class="en">Lia Bellot · 잿빛 왕관 주인공</div>
+        <div class="one">"왕관은 잃었어도, 검은 아직 내 손에 있어."</div>
+        <div class="chips" style="margin-bottom:14px"><span class="chip a">잿빛 왕관</span><span class="chip">기사</span><span class="chip">주인공</span><span class="chip">츤데레</span><span class="chip">#은발</span></div>
+        <div class="acts">
+          <span class="toggle btn"><span class="sw"></span>블로그 공개</span>
+          <button class="btn">✉ 챗봇 카드로 내보내기</button>
+          <button class="btn d-only">⧉ 복제</button>
+          <button class="btn pri">✎ 편집</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <a class="on">프로필</a><a>성격·말투</a><a>관계</a><a>갤러리 12</a><a>챗봇 설정</a><a>게임 데이터</a><a>변경 기록</a>
+    </div>
+
+    <div class="cols">
+      <div class="grid">
+        <div class="card">
+          <h3>기본 정보 <small>템플릿: 판타지</small></h3>
+          <dl class="kv">
+            <dt>나이</dt><dd>23세</dd>
+            <dt>생일</dt><dd>11월 2일</dd>
+            <dt>키</dt><dd>168cm</dd>
+            <dt>소속</dt><dd>구 벨로트 왕국 근위대</dd>
+            <dt>무기</dt><dd>장검 「잿불」</dd>
+            <dt>테마색</dt><dd><span class="swatch" style="background:#c9573f"></span>#C9573F</dd>
+            <dt>성우 이미지</dt><dd>낮고 차분한 톤</dd>
+          </dl>
+        </div>
+        <div class="card">
+          <h3>성격 축</h3>
+          <div class="trait"><div class="row"><span>내향</span><span>외향</span></div><div class="track"><i style="left:28%"></i></div></div>
+          <div class="trait"><div class="row"><span>이성</span><span>감정</span></div><div class="track"><i style="left:35%"></i></div></div>
+          <div class="trait"><div class="row"><span>냉소</span><span>다정</span></div><div class="track"><i style="left:60%"></i></div></div>
+          <div class="chips"><span class="chip">책임감</span><span class="chip">고집</span><span class="chip">단 것 좋아함</span></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card prose">
+          <h3>배경 이야기 <small>마크다운</small></h3>
+          <p>벨로트 왕국이 하룻밤 사이 잿더미가 되던 날, 근위대 막내였던 리아는 공주 대신 살아남았다. 그 뒤로 그녀는 왕관이 아닌 <b>왕관을 지키지 못한 죄책감</b>을 짊어지고 대륙을 떠돈다.</p>
+          <p>겉으로는 무뚝뚝하지만 아이와 동물에게는 약하고, 단 과자를 보면 표정이 풀린다.</p>
+        </div>
+        <div class="card">
+          <h3>대표 대사 <small>챗봇 예시 대화로 재사용</small></h3>
+          <div class="quote">"…따라오지 마. 위험하다고 했잖아."<small>처음 만났을 때</small></div>
+          <div class="quote">"이건 그냥, 남아서 주는 거야. 오해하지 마."<small>호감도 높음</small></div>
+        </div>
+        <div class="card secret">
+          <h3>🔒 비밀 설정 <small>블로그에는 가려짐</small></h3>
+          <p>사실 리아가 공주 본인이며, 근위대 막내는 그날 대신 죽었다. 3장에서 카이엔이 이 사실을 눈치챈다.</p>
+          <div class="veil">클릭해서 보기</div>
+        </div>
+      </div>
+
+      <div class="grid col3">
+        <div class="card">
+          <h3>관계 <small>관계도에서 보기 →</small></h3>
+          <div class="rel"><div class="pt c2">카이</div><div><b>카이엔</b><span>빚진 사이 · 신뢰 ▲</span></div></div>
+          <div class="rel"><div class="pt c3">미르</div><div><b>미르</b><span>여행 동료 · 티격태격</span></div></div>
+          <div class="rel"><div class="pt c5">에델</div><div><b>에델 크로우</b><span>적대 · 배신 예정</span></div></div>
+        </div>
+        <div class="card">
+          <h3>갤러리 <small>12장</small></h3>
+          <div class="gal"><div class="pt c1"></div><div class="pt c8"></div><div class="pt c6"></div><div class="pt c5"></div><div class="pt c1"></div><div class="pt c7"></div></div>
+        </div>
+        <div class="card d-only">
+          <h3>변경 기록</h3>
+          <div class="ver"><span>v7 · 대사 2개 추가</span><span>오늘</span></div>
+          <div class="ver"><span>v6 · 나이 22 → 23</span><span>10/12</span></div>
+          <div class="ver"><span>v5 · 비밀 설정 작성</span><span>10/03</span></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

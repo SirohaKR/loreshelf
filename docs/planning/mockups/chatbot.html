@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 챗봇 설정</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+  .head .pt { width: 48px; height: 48px; border-radius: 50%; font-size: 13px; }
+  .head .pt::before, .head .pt::after { display: none; }
+  .head .sp { flex: 1; }
+  .split { display: grid; grid-template-columns: 1fr 400px; gap: 20px; align-items: start; }
+  .field { margin-bottom: 16px; }
+  .field label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .field label small { font-weight: 400; color: var(--muted); }
+  .ta {
+    background: var(--surface2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+    font-size: 13px; line-height: 1.7; white-space: pre-wrap; font-family: 'Consolas', 'Malgun Gothic', monospace;
+  }
+  .var { background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 0 3px; }
+  .seg { display: inline-flex; background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+  .seg a { padding: 5px 12px; font-size: 12px; border-radius: 7px; color: var(--muted); }
+  .seg a.on { background: var(--surface); color: var(--text); font-weight: 700; box-shadow: 0 0 0 1px var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 400; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+  td { padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td .chip { margin: 0 3px 3px 0; }
+  .preview { position: sticky; top: 20px; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+  .pv-head { padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .msgs { padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg); min-height: 330px; }
+  .msg { max-width: 82%; padding: 10px 13px; border-radius: 14px; font-size: 13px; line-height: 1.6; }
+  .msg.bot { background: var(--surface); border: 1px solid var(--line); border-top-left-radius: 4px; }
+  .msg.me { background: var(--accent); color: #fff; align-self: flex-end; border-top-right-radius: 4px; }
+  .msg i { color: var(--muted); font-style: normal; }
+  .pv-input { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+  .pv-input div { flex: 1; background: var(--surface2); border-radius: 10px; padding: 9px 12px; color: var(--muted); font-size: 13px; }
+  .tok { padding: 14px 16px; border-top: 1px solid var(--line); font-size: 12px; }
+  .tok .bar { height: 8px; border-radius: 4px; background: var(--surface2); display: flex; overflow: hidden; margin: 8px 0; }
+  .tok .bar i { display: block; height: 100%; }
+  .legend { display: flex; gap: 12px; color: var(--muted); flex-wrap: wrap; }
+  .legend span::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; background: var(--c); }
+  .exp { padding: 14px 16px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .exp .btn { text-align: center; }
+  @media (max-width: 1100px) { .split { grid-template-columns: 1fr; } .preview { position: static; } }
+  @media (max-width: 760px) {
+    .head h1 { font-size: 18px; }
+    .msgs { min-height: 0; }
+    .lore-kw { display: none; }
+  }
+</style>
+</head>
+<body data-nav="캐릭터">
+<div class="app">
+  <main class="main">
+    <div class="head">
+      <div class="m-only icon-btn">←</div>
+      <div class="pt c6">하린</div>
+      <div>
+        <h1>서하린 · 챗봇 설정</h1>
+        <div class="sub">캐릭터 프로필과 연결됨 · 프로필을 고치면 여기도 갱신 제안</div>
+      </div>
+      <div class="sp"></div>
+      <div class="seg d-only"><a>v1</a><a>v2</a><a class="on">v3 (현재)</a></div>
+      <button class="btn d-only">↔ 버전 비교</button>
+      <button class="btn pri">저장</button>
+    </div>
+
+    <div class="split">
+      <div>
+        <div class="card">
+          <div class="field">
+            <label>캐릭터 설명 / 시스템 프롬프트 <small>612 토큰</small></label>
+<div class="ta"><span class="var">{{char}}</span>는 24시 편의점에서 새벽 근무를 하는 22살 대학생이다.
+무심한 척하지만 단골인 <span class="var">{{user}}</span>를 은근히 기다린다.
+말투: 반말, 짧은 문장, 가끔 "…"로 말끝을 흐림. 이모지는 쓰지 않는다.
+금지: 갑자기 고백하지 않기, 3인칭 서술 금지.</div>
+          </div>
+          <div class="field">
+            <label>첫 메시지 <small>대체 인사 2개</small></label>
+<div class="ta">*삑— 바코드 소리가 울린다.* …또 왔네. 오늘은 컵라면 말고 다른 거 먹어.</div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>예시 대화 <small>프로필 '대표 대사'에서 가져오기</small></label>
+<div class="ta"><span class="var">{{user}}</span>: 오늘 좀 피곤해 보인다?
+<span class="var">{{char}}</span>: …시험 기간이라. 신경 쓰지 마. 계산이나 해.</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <h2>로어북 <span class="chip">5개 항목</span></h2>
+            <button class="btn">+ 항목 추가</button>
+          </div>
+          <table>
+            <tr><th>이름</th><th class="lore-kw">트리거 키워드</th><th>상태</th></tr>
+            <tr><td><b>편의점 '24/7 하늘점'</b><div class="sub">서하린의 근무지. 사장은 거의 안 옴…</div></td><td class="lore-kw"><span class="chip">편의점</span><span class="chip">가게</span><span class="chip">사장</span></td><td><span class="chip ok">켜짐</span></td></tr>
+            <tr><td><b>고양이 '두부'</b><div class="sub">가게 뒤에 사는 길고양이</div></td><td class="lore-kw"><span class="chip">고양이</span><span class="chip">두부</span></td><td><span class="chip ok">켜짐</span></td></tr>
+            <tr><td><b>전 남친 이야기</b><div class="sub">호감도 높을 때만 언급</div></td><td class="lore-kw"><span class="chip">연애</span><span class="chip">전 남친</span></td><td><span class="chip">꺼짐</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="card preview">
+        <div class="pv-head"><b>미리보기</b><span class="chip warn">테스트 모드 · Claude API</span></div>
+        <div class="msgs">
+          <div class="msg bot"><i>*삑— 바코드 소리가 울린다.*</i> …또 왔네. 오늘은 컵라면 말고 다른 거 먹어.</div>
+          <div class="msg me">왜? 걱정돼?</div>
+          <div class="msg bot">…아니. 재고 정리하기 귀찮아서 그래. <i>*삼각김밥 하나를 슬쩍 계산대에 올려둔다.*</i></div>
+        </div>
+        <div class="pv-input"><div>메시지 입력…</div><button class="btn pri">↑</button></div>
+        <div class="tok">
+          <div style="display:flex;justify-content:space-between"><b>토큰 사용량</b><span>1,284 / 4,000</span></div>
+          <div class="bar"><i style="width:15%;background:#3f5bd8"></i><i style="width:6%;background:#d6487a"></i><i style="width:5%;background:#d9822b"></i><i style="width:6%;background:#2f9e6b"></i></div>
+          <div class="legend"><span style="--c:#3f5bd8">설명</span><span style="--c:#d6487a">첫 메시지</span><span style="--c:#d9822b">예시</span><span style="--c:#2f9e6b">로어북</span></div>
+        </div>
+        <div class="exp">
+          <button class="btn">⇩ 카드 PNG (V2)</button>
+          <button class="btn">⇩ JSON</button>
+          <button class="btn">⧉ 텍스트 복사</button>
+          <button class="btn">⧉ 플랫폼별 양식</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

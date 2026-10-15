@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 리아 벨로트 · 이미지 프롬프트</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .mini-head { display: flex; align-items: center; gap: 14px; }
+  .mini-head .pt { width: 52px; height: 52px; border-radius: 50%; font-size: 13px; flex: none; }
+  .mini-head .pt::before, .mini-head .pt::after { display: none; }
+  .mini-head .sp { flex: 1; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 18px 0 20px; overflow-x: auto; }
+  .tabs a { padding: 10px 14px; color: var(--muted); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tabs a.on { color: var(--text); font-weight: 700; border-color: var(--accent); }
+  .wrap2 { display: grid; grid-template-columns: 1fr 400px; gap: 20px; align-items: start; }
+  .card-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .seg { display: inline-flex; background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+  .seg a { padding: 5px 12px; font-size: 12px; border-radius: 7px; color: var(--muted); white-space: nowrap; }
+  .seg a.on { background: var(--surface); color: var(--text); font-weight: 700; box-shadow: 0 0 0 1px var(--line); }
+  .crow { display: grid; grid-template-columns: 96px 1fr 30px; gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+  .crow .lb { font-size: 12px; font-weight: 700; padding-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .crow .lb i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); flex: none; }
+  .crow .cp { width: 28px; height: 26px; border-radius: 7px; border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; color: var(--muted); }
+  .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 9px; border-radius: 7px; background: var(--surface2); border: 1px solid var(--line); margin: 0 4px 4px 0; white-space: nowrap; }
+  .tag b { font-size: 10px; color: var(--accent); font-weight: 700; }
+  .tag.trig { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .tag.neg { text-decoration: line-through; text-decoration-color: rgba(214,72,122,.5); }
+  .hint { font-size: 12px; color: var(--muted); background: var(--surface2); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+  textarea.raw {
+    width: 100%; height: 132px; resize: vertical; border: 1px solid var(--line); background: var(--surface2); color: var(--text);
+    border-radius: 10px; padding: 12px; font-family: Consolas, 'Malgun Gothic', monospace; font-size: 12px; line-height: 1.6;
+  }
+  .parsed { margin-top: 12px; }
+  .detect { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  .settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 10px; }
+  .settings div { background: var(--surface2); border-radius: 9px; padding: 7px 10px; font-size: 12px; min-width: 0; }
+  .settings small { display: block; color: var(--muted); font-size: 10.5px; }
+  .settings span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .acts { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap; }
+  /* 생성 기록 */
+  .rec { display: grid; grid-template-columns: 84px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .rec:first-of-type { border-top: 0; }
+  .rec .pt { width: 84px; aspect-ratio: 3/4; font-size: 0; border-radius: 10px; }
+  .rec .star { position: absolute; top: 5px; left: 5px; z-index: 2; font-size: 11px; background: var(--surface); color: var(--warn); border-radius: 6px; padding: 0 5px; }
+  .rec b { font-size: 13px; }
+  .rec .kv { display: grid; grid-template-columns: 52px 1fr; font-size: 12px; row-gap: 3px; margin-top: 6px; }
+  .rec .kv dt { color: var(--muted); }
+  .rec .kv dd { margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lora { display: inline-block; font-size: 11px; background: var(--rose-soft); color: var(--rose); border-radius: 5px; padding: 0 6px; margin-right: 3px; }
+  .drop { border: 1.5px dashed var(--line); border-radius: 12px; padding: 14px; text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  @media (max-width: 1250px) { .wrap2 { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .crow { grid-template-columns: 1fr 30px; }
+    .crow .lb { grid-column: 1 / -1; }
+    .crow .tags { grid-column: 1; }
+    .tabs { margin: 14px -16px 14px; padding: 0 16px; }
+    .mini-head h1 { font-size: 18px; }
+    textarea.raw { height: 150px; }
+  }
+</style>
+</head>
+<body data-nav="캐릭터">
+<div class="app">
+  <main class="main">
+    <div class="top">
+      <div class="m-only icon-btn">←</div>
+      <div class="search d-only">⌕ 캐릭터, 설정, 프롬프트 검색… <kbd>Ctrl K</kbd></div>
+      <div class="sp"></div>
+      <div class="icon-btn">☾</div>
+      <div class="avatar-me d-only">주</div>
+    </div>
+
+    <div class="mini-head">
+      <div class="pt c1">리아</div>
+      <div><h1>리아 벨로트</h1><div class="sub">잿빛 왕관 · 프로젝트 전용 캐릭터</div></div>
+      <div class="sp"></div>
+      <button class="btn pri d-only">+ 이미지 추가</button>
+    </div>
+
+    <div class="tabs"><a>프로필</a><a>성격·말투</a><a>관계</a><a class="on">이미지·프롬프트 14</a><a>챗봇 설정</a><a>게임 데이터</a><a>변경 기록</a></div>
+
+    <div class="wrap2">
+      <div class="grid">
+        <!-- 고정 프롬프트 -->
+        <div class="card">
+          <div class="card-h">
+            <div><h2>고정 프롬프트</h2><div class="sub">이 캐릭터를 그릴 때 항상 넣는 부분 · 포즈·표정·배경은 매번 바뀌니 제외</div></div>
+            <div class="seg"><a class="on">기본 외형</a><a>전투복</a><a>평상복</a><a>+</a></div>
+          </div>
+          <div class="crow"><div class="lb"><i style="--c:#3f5bd8"></i>인물·외형</div><div class="tags"><span class="tag trig">lia bellot <b>트리거</b></span><span class="tag">1girl</span><span class="tag">solo</span><span class="tag">silver hair <b>1.2</b></span><span class="tag">long hair</span><span class="tag">side braid</span><span class="tag">red eyes</span><span class="tag">scar on cheek</span></div><div class="cp">⧉</div></div>
+          <div class="crow"><div class="lb"><i style="--c:#d9822b"></i>의상·소품</div><div class="tags"><span class="tag">silver armor</span><span class="tag">red cape</span><span class="tag">gauntlets</span><span class="tag">longsword</span></div><div class="cp">⧉</div></div>
+          <div class="crow"><div class="lb"><i style="--c:#d6487a"></i>스타일·화풍</div><div class="tags"><span class="tag">anime coloring</span><span class="tag">flat color</span><span class="lora">LoRA flatColor 0.4</span></div><div class="cp">⧉</div></div>
+          <div class="crow"><div class="lb"><i style="--c:#6b7280"></i>품질</div><div class="tags"><span class="tag">masterpiece</span><span class="tag">best quality</span><span class="tag">absurdres</span></div><div class="cp">⧉</div></div>
+          <div class="crow"><div class="lb"><i style="--c:#c03d3d"></i>네거티브</div><div class="tags"><span class="tag neg">lowres</span><span class="tag neg">bad anatomy</span><span class="tag neg">bad hands</span><span class="tag neg">watermark</span></div><div class="cp">⧉</div></div>
+          <div class="crow"><div class="lb"><i style="--c:#2f9e6b"></i>캐릭터 LoRA</div><div class="tags"><span class="lora">liaBellot_v2 · 0.8</span><span class="chip">SDXL · Illustrious 기반</span><span class="chip">트리거: lia bellot</span></div><div class="cp">⧉</div></div>
+          <div class="acts">
+            <div class="seg"><a class="on">SD 형식</a><a>NovelAI 형식</a><a>문장형</a></div>
+            <button class="btn pri">⧉ 전체 복사</button>
+          </div>
+        </div>
+
+        <!-- 붙여넣기 → 자동 분류 -->
+        <div class="card">
+          <div class="card-h">
+            <div><h2>프롬프트 붙여넣기 → 자동 분류</h2><div class="sub">WebUI·Forge의 생성 정보 통째로, NovelAI 태그, Midjourney 명령어 모두 OK</div></div>
+            <button class="btn">✦ AI로 분류</button>
+          </div>
+<textarea class="raw" id="raw">masterpiece, best quality, 1girl, solo, lia bellot, (silver hair:1.2), long hair, side braid, red eyes, scar on cheek, silver armor, red cape, holding sword, light smile, looking at viewer, cowboy shot, castle ruins, embers, sunset, backlighting, anime coloring, &lt;lora:liaBellot_v2:0.8&gt;, &lt;lora:flatColor:0.4&gt;
+Negative prompt: lowres, bad anatomy, bad hands, worst quality, watermark
+Steps: 28, Sampler: Euler a, CFG scale: 6, Seed: 2984471023, Size: 832x1216, Model: illustriousXL_v01</textarea>
+          <div class="detect" id="detect"></div>
+          <div class="parsed" id="parsed"></div>
+          <div class="settings" id="settings"></div>
+          <div class="acts">
+            <button class="btn">태그 끌어서 분류 수정</button>
+            <button class="btn">고정 프롬프트에 반영</button>
+            <button class="btn pri">생성 기록으로 저장</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 생성 기록 -->
+      <div class="card">
+        <div class="card-h"><h2>생성 기록 <span class="chip">14</span></h2>
+          <div class="seg"><a class="on">전체</a><a>NAI</a><a>SD</a><a>MJ</a></div></div>
+        <div class="drop">이미지를 끌어다 놓으면 PNG 안의 생성 정보를 자동으로 읽어요</div>
+        <div class="rec"><div class="pt c1"><span class="star">★ 대표</span></div><div>
+          <b>전투복 · 노을 폐허</b> <span class="chip">10/14</span>
+          <dl class="kv"><dt>플랫폼</dt><dd>SD WebUI Forge</dd><dt>모델</dt><dd>illustriousXL_v01</dd><dt>LoRA</dt><dd><span class="lora">liaBellot_v2 0.8</span><span class="lora">flatColor 0.4</span></dd><dt>시드</dt><dd>2984471023 · Euler a · 28</dd></dl>
+        </div></div>
+        <div class="rec"><div class="pt c8"></div><div>
+          <b>평상복 · 카페</b> <span class="chip">10/11</span>
+          <dl class="kv"><dt>플랫폼</dt><dd>NovelAI</dd><dt>모델</dt><dd>NAI Diffusion V4.5</dd><dt>LoRA</dt><dd style="color:var(--muted)">— (미지원)</dd><dt>시드</dt><dd>771203 · 캐릭터 참조 사용</dd></dl>
+        </div></div>
+        <div class="rec"><div class="pt c6"></div><div>
+          <b>일러스트 컨셉</b> <span class="chip">10/05</span>
+          <dl class="kv"><dt>플랫폼</dt><dd>Midjourney</dd><dt>모델</dt><dd>niji 6</dd><dt>옵션</dt><dd>--ar 2:3 --sref 2241…</dd><dt>시드</dt><dd>—</dd></dl>
+        </div></div>
+        <div class="rec"><div class="pt c5"></div><div>
+          <b>SD 표정 시트</b> <span class="chip">09/28</span>
+          <dl class="kv"><dt>플랫폼</dt><dd>ComfyUI</dd><dt>모델</dt><dd>illustriousXL_v01</dd><dt>LoRA</dt><dd><span class="lora">liaBellot_v1 0.9</span></dd><dt>워크플로</dt><dd>expression_sheet.json 첨부</dd></dl>
+        </div></div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="shell.js"></script>
+<script src="prompt-parser.js"></script>
+<script>
+  const COLORS = { character: '#3f5bd8', outfit: '#d9822b', expression: '#e0a800', pose: '#7c5cd6', background: '#2f9e6b', style: '#d6487a', quality: '#6b7280', etc: '#9aa1ad' };
+  const ORDER = ['character', 'outfit', 'expression', 'pose', 'background', 'style', 'quality', 'etc'];
+  const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const tagHtml = t => `<span class="tag">${esc(t.tag)}${t.weight !== 1 ? ` <b>${t.weight}</b>` : ''}</span>`;
+  function render() {
+    const r = parsePrompt(document.getElementById('raw').value);
+    const total = Object.values(r.categories).reduce((a, b) => a + b.length, 0);
+    document.getElementById('detect').innerHTML =
+      `감지된 플랫폼 <span class="chip a">${r.platform}</span> 태그 ${total}개 · LoRA ${r.loras.length}개 · 네거티브 ${r.negative.length}개`;
+    let html = ORDER.filter(k => r.categories[k]).map(k =>
+      `<div class="crow"><div class="lb"><i style="--c:${COLORS[k]}"></i>${CATEGORY_LABELS[k]}</div><div class="tags">${r.categories[k].map(tagHtml).join('')}</div><div class="cp">⧉</div></div>`).join('');
+    if (r.negative.length) html += `<div class="crow"><div class="lb"><i style="--c:#c03d3d"></i>네거티브</div><div class="tags">${r.negative.map(t => `<span class="tag neg">${esc(t)}</span>`).join('')}</div><div class="cp">⧉</div></div>`;
+    if (r.loras.length) html += `<div class="crow"><div class="lb"><i style="--c:#2f9e6b"></i>LoRA</div><div class="tags">${r.loras.map(l => `<span class="lora">${esc(l.name)} · ${l.weight}</span>`).join('')}</div><div class="cp">⧉</div></div>`;
+    document.getElementById('parsed').innerHTML = html;
+    document.getElementById('settings').innerHTML = Object.entries(r.settings)
+      .map(([k, v]) => `<div><small>${esc(k)}</small><span>${esc(v)}</span></div>`).join('');
+  }
+  document.getElementById('raw').addEventListener('input', render);
+  render();
+</script>
+</body>
+</html>

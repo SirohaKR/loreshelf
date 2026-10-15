@@ -4,6 +4,8 @@
 PC와 휴대폰 화면 모두에서 쓸 수 있어요.
 
 > 지금은 **1단계(작업실)**까지 만들어져 있어요. 이미지 프롬프트 기록, 챗봇 설정, 공개 블로그는 다음 단계예요. 단계 계획은 아래 "로드맵" 참고.
+>
+> **이어서 작업하려면** → [docs/작업-현황.md](docs/작업-현황.md) (한 것 · 남은 것 · 새 PC에서 시작하는 법). 기획서와 화면 목업은 [docs/planning/](docs/planning/기획서.md).
 
 ## 할 수 있는 것 (v0.2)
 
@@ -76,4 +78,4 @@ docker compose up -d --build
 | 5 | 관계도, 타임라인, 버전 기록, 게임 데이터, 기획 보드 |
 | 6 | Claude API 보조 기능, Civitai 조회, 로컬 WebUI 연동 |
 
-개발 문서: [docs/개발자-설명서.md](docs/개발자-설명서.md) · DB 규칙: [docs/DB-설계.md](docs/DB-설계.md) · 업데이트 내역: [server/CHANGELOG.md](server/CHANGELOG.md)
+작업 현황: [docs/작업-현황.md](docs/작업-현황.md) · 개발 문서: [docs/개발자-설명서.md](docs/개발자-설명서.md) · DB 규칙: [docs/DB-설계.md](docs/DB-설계.md) · 업데이트 내역: [server/CHANGELOG.md](server/CHANGELOG.md)

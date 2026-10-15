@@ -62,7 +62,7 @@ void main() {
 
   test('홈: 빠진 목록은 기본값 [], 세계관 숫자 같은 모르는 키는 무시', () {
     final home = HomeSummary.fromJson({
-      'user': {'id': 1, 'login_name': 'dev', 'display_name': '서연'},
+      'user': {'id': 1, 'login_name': 'dev', 'display_name': '주인장'},
       'counts': {'characters': 6, 'worlds': 2, 'library_characters': 3, 'projects': 2, 'public_items': 3},
       'projects': [
         {
@@ -71,7 +71,7 @@ void main() {
         },
       ],
     });
-    expect(home.user?.displayName, '서연');
+    expect(home.user?.displayName, '주인장');
     expect(home.counts.libraryCharacters, 3);
     expect(home.recentCharacters, isEmpty);
     expect(home.projects.single.characterCount, 3);

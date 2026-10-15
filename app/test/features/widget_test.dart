@@ -49,7 +49,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('login-password')), 'pw');
     await tester.tap(find.text('로그인'));
     await tester.pumpAndSettle();
-    expect(find.text('안녕하세요, 서연님'), findsOneWidget);
+    expect(find.text('안녕하세요, 주인장님'), findsOneWidget);
   });
 
   testWidgets('홈: 숫자, 최근 캐릭터, 프로젝트와 장르 태그, 넓은 화면은 왼쪽 메뉴', (tester) async {
@@ -92,7 +92,7 @@ void main() {
     await tester.pumpWidget(ProviderScope(overrides: await fakeOverrides(user: me), child: const LoreShelfApp()));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('로그아웃 (서연)'));
+    await tester.tap(find.byTooltip('로그아웃 (주인장)'));
     await tester.pumpAndSettle();
     expect(find.text('로그아웃할까요?'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, '로그아웃'));

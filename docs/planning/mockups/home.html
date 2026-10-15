@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 홈</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .stat { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+  .stat .n { font-size: 24px; font-weight: 800; }
+  .stat .l { color: var(--muted); font-size: 12px; }
+  .stat .sq { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; font-size: 18px; }
+  .layout { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+  .chars { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .ch { padding: 10px; }
+  .ch .pt { aspect-ratio: 3/4; font-size: 26px; }
+  .ch .pt .lock { position: absolute; top: 8px; right: 8px; z-index: 2; }
+  .ch b { display: block; margin: 10px 2px 0; font-size: 15px; }
+  .ch p { margin: 2px 2px 8px; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .proj { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .proj:last-child { border-bottom: 0; }
+  .proj .ico { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 18px; flex: none; }
+  .proj .meta { flex: 1; min-width: 0; }
+  .proj .meta b { display: block; font-size: 14px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--surface2); margin-top: 6px; }
+  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .memo textarea {
+    width: 100%; height: 70px; border: 1px solid var(--line); background: var(--surface2); color: var(--text);
+    border-radius: 10px; padding: 10px; font-family: inherit; font-size: 13px; resize: none;
+  }
+  .act { display: flex; gap: 10px; font-size: 13px; padding: 7px 0; }
+  .act .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; flex: none; }
+  .act time { color: var(--muted); font-size: 11px; margin-left: auto; white-space: nowrap; }
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filters .chip { font-size: 12px; padding: 5px 12px; }
+  @media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { padding: 12px; gap: 10px; }
+    .stat .sq { width: 34px; height: 34px; font-size: 15px; }
+    .stat .n { font-size: 19px; }
+    .chars { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .chars .ch:nth-child(n+5) { display: none; }
+    .filters { flex-wrap: nowrap; overflow-x: auto; }
+    .sec-head { margin-top: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><div class="brand-mark">L</div><div><b>LoreShelf</b><small>내 캐릭터 서재</small></div></div>
+    <button class="new-btn">+ <span>새로 만들기</span></button>
+    <nav class="nav">
+      <a class="on"><span class="ic">⌂</span><span>홈</span></a>
+      <a><span class="ic">☺</span><span>캐릭터</span><span class="cnt">24</span></a>
+      <a><span class="ic">◎</span><span>세계관</span><span class="cnt">3</span></a>
+      <a><span class="ic">▣</span><span>프로젝트</span><span class="cnt">5</span></a>
+      <div class="nav-label">시각화</div>
+      <a><span class="ic">⋈</span><span>관계도</span></a>
+      <a><span class="ic">↗</span><span>타임라인</span></a>
+      <a><span class="ic">▦</span><span>갤러리</span></a>
+      <a><span class="ic">✎</span><span>메모</span></a>
+      <div class="nav-label">블로그</div>
+      <a><span class="ic">◐</span><span>공개 설정</span></a>
+      <a><span class="ic">⇩</span><span>내보내기·백업</span></a>
+    </nav>
+    <div class="side-foot nav"><a><span class="ic">⚙</span><span>설정</span></a></div>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div class="m-only brand-mark">L</div>
+      <div class="search">⌕ 캐릭터, 설정, 대사 검색… <kbd class="d-only">Ctrl K</kbd></div>
+      <div class="sp"></div>
+      <button class="btn d-only">◐ 내 블로그 보기</button>
+      <div class="icon-btn">☾</div>
+      <div class="avatar-me">주</div>
+    </div>
+
+    <h1>안녕하세요, 주인장님</h1>
+    <div class="sub">마지막 작업: 리아 벨로트 · 챗봇 설정 v3 (2시간 전)</div>
+
+    <div class="grid stats" style="margin-top:18px">
+      <div class="card stat"><div class="sq" style="background:var(--accent-soft);color:var(--accent)">☺</div><div><div class="n">24</div><div class="l">캐릭터</div></div></div>
+      <div class="card stat"><div class="sq" style="background:var(--ok-soft);color:var(--ok)">◎</div><div><div class="n">3</div><div class="l">세계관</div></div></div>
+      <div class="card stat"><div class="sq" style="background:var(--warn-soft);color:var(--warn)">▣</div><div><div class="n">5</div><div class="l">프로젝트</div></div></div>
+      <div class="card stat"><div class="sq" style="background:var(--rose-soft);color:var(--rose)">◐</div><div><div class="n">12</div><div class="l">공개 중인 글</div></div></div>
+    </div>
+
+    <div class="layout">
+      <section>
+        <div class="sec-head"><h2>최근 수정한 캐릭터</h2><a>전체 보기 →</a></div>
+        <div class="filters" style="margin-bottom:12px">
+          <span class="chip a">전체</span><span class="chip">잿빛 왕관</span><span class="chip">챗봇</span><span class="chip">별빛 학원</span><span class="chip">미분류</span><span class="chip">♡ 즐겨찾기</span>
+        </div>
+        <div class="grid chars">
+          <div class="card ch"><div class="pt c1">리아<span class="chip ok lock">공개</span></div><b>리아 벨로트</b><p>몰락한 왕가의 마지막 기사</p><div class="chips"><span class="chip a">잿빛 왕관</span><span class="chip">기사</span></div></div>
+          <div class="card ch"><div class="pt c6">하린<span class="chip ok lock">공개</span></div><b>서하린</b><p>새벽 4시의 편의점 알바생</p><div class="chips"><span class="chip rose">챗봇</span><span class="chip">현대</span></div></div>
+          <div class="card ch"><div class="pt c2">카이<span class="chip lock">🔒 비공개</span></div><b>카이엔</b><p>시간을 훔치는 궁정 마법사</p><div class="chips"><span class="chip a">잿빛 왕관</span><span class="chip">마법사</span></div></div>
+          <div class="card ch"><div class="pt c4">노아</div><b>노아 에반스</b><p>별빛 학원 학생회장</p><div class="chips"><span class="chip ok">별빛 학원</span></div></div>
+          <div class="card ch"><div class="pt c3">미르</div><b>미르</b><p>말하는 고양이 · 안내 NPC</p><div class="chips"><span class="chip a">잿빛 왕관</span><span class="chip">NPC</span></div></div>
+          <div class="card ch"><div class="pt c5">에델</div><b>에델 크로우</b><p>정보상, 웃는 얼굴의 배신자</p><div class="chips"><span class="chip">미분류</span></div></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="sec-head"><h2>진행 중인 프로젝트</h2><a>+ 추가</a></div>
+        <div class="card" style="padding:6px 18px">
+          <div class="proj"><div class="ico" style="background:var(--warn-soft);color:var(--warn)">⚔</div><div class="meta"><b>잿빛 왕관</b><span class="chip warn">게임 · RPG</span> <span class="chip">캐릭터 8</span><div class="bar"><i style="width:62%"></i></div></div></div>
+          <div class="proj"><div class="ico" style="background:var(--rose-soft);color:var(--rose)">✉</div><div class="meta"><b>서하린 챗봇</b><span class="chip rose">캐릭터챗</span> <span class="chip">v3</span><div class="bar"><i style="width:85%"></i></div></div></div>
+          <div class="proj"><div class="ico" style="background:var(--ok-soft);color:var(--ok)">✦</div><div class="meta"><b>별빛 학원</b><span class="chip ok">세계관</span> <span class="chip">문서 14</span><div class="bar"><i style="width:30%"></i></div></div></div>
+        </div>
+
+        <div class="sec-head"><h2>빠른 메모</h2></div>
+        <div class="card memo">
+          <textarea>카이엔이 리아한테 빚진 게 있다는 설정 어때? → 3장 복선</textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div class="chips"><span class="chip">#카이엔</span><span class="chip">#복선</span></div>
+            <button class="btn pri" style="padding:6px 12px">저장</button>
+          </div>
+        </div>
+
+        <div class="sec-head d-only"><h2>최근 활동</h2></div>
+        <div class="card d-only" style="padding:10px 18px">
+          <div class="act"><span class="dot" style="background:var(--rose)"></span>서하린 · 첫 메시지 수정<time>2시간 전</time></div>
+          <div class="act"><span class="dot" style="background:var(--accent)"></span>리아 ↔ 카이엔 관계 추가<time>어제</time></div>
+          <div class="act"><span class="dot" style="background:var(--ok)"></span>블로그에 '노아 에반스' 공개<time>3일 전</time></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<nav class="tabbar">
+  <a class="on"><span class="ic">⌂</span>홈</a>
+  <a><span class="ic">☺</span>캐릭터</a>
+  <a><span class="fab">+</span></a>
+  <a><span class="ic">▣</span>프로젝트</a>
+  <a><span class="ic">≡</span>더보기</a>
+</nav>
+<script>if (location.search.includes('dark')) document.documentElement.classList.add('dark');</script>
+</body>
+</html>

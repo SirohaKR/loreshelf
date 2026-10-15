@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>나의 서재 · 공개 블로그</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { --wrap: 1120px; }
+  .bnav { background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; }
+  .bnav .in { max-width: var(--wrap); margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 28px; }
+  .logo { font-weight: 800; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+  .logo i { width: 12px; height: 12px; border-radius: 3px; background: var(--rose); display: inline-block; }
+  .links { display: flex; gap: 22px; color: var(--muted); }
+  .links a.on { color: var(--text); font-weight: 700; }
+  .bnav .sp { flex: 1; }
+  .wrap { max-width: var(--wrap); margin: 0 auto; padding: 32px 24px 60px; }
+  .feature { display: grid; grid-template-columns: 380px 1fr; gap: 36px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+  .feature .pt { aspect-ratio: 4/5; font-size: 40px; border-radius: 16px; }
+  .eyebrow { color: var(--rose); font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+  .feature h1 { font-size: 34px; margin: 6px 0 4px; }
+  .feature .lead { font-size: 16px; color: var(--muted); margin: 10px 0 18px; line-height: 1.7; }
+  .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .facts div { background: var(--surface2); border-radius: 12px; padding: 10px 12px; font-size: 13px; }
+  .facts small { display: block; color: var(--muted); font-size: 11px; }
+  .spoiler { background: var(--surface2); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .h { display: flex; justify-content: space-between; align-items: baseline; margin: 40px 0 14px; }
+  .h h2 { font-size: 20px; }
+  .h .chips .chip { font-size: 12px; padding: 4px 12px; }
+  .posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .post { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .post .pt { aspect-ratio: 16/10; border-radius: 0; font-size: 26px; }
+  .post .bd { padding: 14px 16px 16px; }
+  .post b { display: block; font-size: 16px; margin: 6px 0 4px; }
+  .post p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .post .meta { margin-top: 10px; font-size: 11px; color: var(--muted); display: flex; gap: 10px; }
+  .worlds { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .world { display: flex; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .world .pt { width: 90px; height: 90px; flex: none; font-size: 0; }
+  .world p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 30px 0; border-top: 1px solid var(--line); }
+  @media (max-width: 900px) {
+    .feature { grid-template-columns: 1fr; }
+    .feature .pt { aspect-ratio: 16/11; }
+    .posts { grid-template-columns: 1fr 1fr; }
+    .worlds { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .bnav .in { padding: 12px 16px; gap: 12px; }
+    .links { display: none; }
+    .wrap { padding: 16px 16px 40px; }
+    .feature { padding: 14px; gap: 16px; border-radius: 16px; }
+    .feature h1 { font-size: 26px; }
+    .feature .lead { font-size: 14px; }
+    .facts { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .posts { grid-template-columns: 1fr; }
+    .h { margin-top: 28px; }
+    .h .chips { display: none; }
+  }
+</style>
+</head>
+<body>
+<header class="bnav"><div class="in">
+  <div class="logo"><i></i>나의 서재</div>
+  <nav class="links"><a class="on">캐릭터</a><a>세계관</a><a>프로젝트</a><a>갤러리</a><a>소개</a></nav>
+  <div class="sp"></div>
+  <div class="icon-btn">⌕</div>
+  <div class="icon-btn">☾</div>
+</div></header>
+
+<div class="wrap">
+  <section class="feature">
+    <div class="pt c1">리아</div>
+    <div>
+      <div class="eyebrow">이 달의 캐릭터 · 잿빛 왕관</div>
+      <h1>리아 벨로트</h1>
+      <div class="chips"><span class="chip">기사</span><span class="chip">23세</span><span class="chip">#은발</span></div>
+      <p class="lead">"왕관은 잃었어도, 검은 아직 내 손에 있어." 하룻밤 사이 사라진 왕국의 마지막 근위 기사. 무뚝뚝하지만 단 과자 앞에서는 무장해제된다.</p>
+      <div class="facts">
+        <div><small>소속</small>구 벨로트 근위대</div>
+        <div><small>무기</small>장검 「잿불」</div>
+        <div><small>테마색</small><span class="swatch" style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#c9573f"></span> 잿불색</div>
+      </div>
+      <div class="spoiler"><span>⚠ 스포일러가 포함된 설정 2개가 있어요</span><button class="btn">펼쳐 보기</button></div>
+    </div>
+  </section>
+
+  <div class="h"><h2>캐릭터</h2><div class="chips"><span class="chip a">전체</span><span class="chip">잿빛 왕관</span><span class="chip">챗봇</span><span class="chip">별빛 학원</span></div></div>
+  <div class="posts">
+    <article class="post"><div class="pt c6">하린</div><div class="bd"><span class="chip rose">챗봇</span><b>서하린</b><p>새벽 4시 편의점, 무심한 듯 다정한 알바생. 챗봇 카드 다운로드 가능.</p><div class="meta"><span>10월 12일</span><span>♡ 48</span><span>⇩ 카드</span></div></div></article>
+    <article class="post"><div class="pt c4">노아</div><div class="bd"><span class="chip ok">별빛 학원</span><b>노아 에반스</b><p>완벽주의 학생회장. 사실은 고양이 알레르기와 싸우는 중.</p><div class="meta"><span>10월 9일</span><span>♡ 21</span></div></div></article>
+    <article class="post"><div class="pt c3">미르</div><div class="bd"><span class="chip a">잿빛 왕관</span><b>미르</b><p>말하는 고양이. 길 안내는 잘하지만 공짜는 없다.</p><div class="meta"><span>10월 2일</span><span>♡ 35</span></div></div></article>
+  </div>
+
+  <div class="h"><h2>세계관</h2></div>
+  <div class="worlds">
+    <div class="world"><div class="pt c8"></div><div><b>벨로트 대륙</b><p>마법이 쇠퇴한 잿빛의 대륙. 왕국 셋, 연표 120년.</p></div></div>
+    <div class="world"><div class="pt c7"></div><div><b>별빛 학원</b><p>별자리 능력자들이 모이는 기숙 학원. 현대 판타지.</p></div></div>
+  </div>
+</div>
+<footer>© 나의 서재 · LoreShelf로 만들었어요</footer>
+<script>if (location.search.includes('dark')) document.documentElement.classList.add('dark');</script>
+</body>
+</html>

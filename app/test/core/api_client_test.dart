@@ -22,7 +22,7 @@ void main() {
         if (req.url.path == '/api/auth/login') {
           expect(jsonDecode(req.body), {'login_name': 'dev', 'password': 'pw'});
           return jsonRes(
-            {'user': {'id': 1, 'login_name': 'dev', 'display_name': '서연'}},
+            {'user': {'id': 1, 'login_name': 'dev', 'display_name': '주인장'}},
             headers: {'set-cookie': 'ls_session=abc123; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000'},
           );
         }

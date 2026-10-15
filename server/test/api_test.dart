@@ -55,14 +55,14 @@ void main() {
 
   tearDown(() => tmp.delete(recursive: true));
 
-  Future<void> setup() => c.ok('POST', '/api/auth/setup', {'login_name': 'seoyeon', 'password': 'password1', 'display_name': '서연'});
+  Future<void> setup() => c.ok('POST', '/api/auth/setup', {'login_name': 'owner', 'password': 'password1', 'display_name': '주인장'});
 
   group('계정', () {
     test('처음엔 계정 만들기가 필요하고, 한 번 만들면 더 못 만든다', () async {
       expect((await c.ok('GET', '/api/auth/me'))['needs_setup'], isTrue);
       expect((await c.call('GET', '/api/home')).$1, 401);
       await setup();
-      expect((await c.ok('GET', '/api/auth/me'))['user']['display_name'], '서연');
+      expect((await c.ok('GET', '/api/auth/me'))['user']['display_name'], '주인장');
       expect((await c.call('POST', '/api/auth/setup', {'login_name': 'other', 'password': 'password1'})).$1, 403);
     });
 
@@ -70,8 +70,8 @@ void main() {
       await setup();
       await c.ok('POST', '/api/auth/logout');
       expect((await c.call('GET', '/api/home')).$1, 401);
-      expect((await c.call('POST', '/api/auth/login', {'login_name': 'seoyeon', 'password': 'wrong-pass'})).$1, 401);
-      await c.ok('POST', '/api/auth/login', {'login_name': 'seoyeon', 'password': 'password1'});
+      expect((await c.call('POST', '/api/auth/login', {'login_name': 'owner', 'password': 'wrong-pass'})).$1, 401);
+      await c.ok('POST', '/api/auth/login', {'login_name': 'owner', 'password': 'password1'});
       expect((await c.ok('GET', '/api/home'))['counts']['characters'], 0);
     });
 

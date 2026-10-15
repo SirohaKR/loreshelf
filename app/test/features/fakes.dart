@@ -12,7 +12,7 @@ import 'package:loreshelf_app/features/projects/domain/genre.dart';
 import 'package:loreshelf_app/features/projects/domain/project.dart';
 import 'package:loreshelf_app/features/projects/domain/projects_repository.dart';
 
-const me = User(id: 1, loginName: 'dev', displayName: '서연');
+const me = User(id: 1, loginName: 'dev', displayName: '주인장');
 const lia = CharacterSummary(id: 1, name: '리아 벨로트', tagline: '몰락한 왕가의 마지막 기사', themeColor: '#C9573F', projectId: 1);
 const mir = CharacterSummary(id: 3, name: '미르', tagline: '말하는 고양이', isFavorite: true);
 const crown = ProjectSummary(
