@@ -40,7 +40,7 @@ class GenRoutes {
       final id = catalog.addPlatform(req.ctx.user, requireStr(b['name'], '플랫폼 이름', max: 60));
       return json(catalog.platform(req.ctx.user, id), status: 201);
     });
-    r.patch('/api/gen/platforms/<id>', (Request req, String id) async {
+    r.put('/api/gen/platforms/<id>', (Request req, String id) async {
       final b = await body(req);
       catalog.renamePlatform(req.ctx.user, pathInt(id), requireStr(b['name'], '플랫폼 이름', max: 60));
       return json(catalog.platform(req.ctx.user, pathInt(id)));
@@ -55,7 +55,7 @@ class GenRoutes {
       final id = catalog.addModel(platformId, _modelValues(b, creating: true));
       return json(catalog.model(req.ctx.user, id), status: 201);
     });
-    r.patch('/api/gen/models/<id>', (Request req, String id) async {
+    r.put('/api/gen/models/<id>', (Request req, String id) async {
       catalog.updateModel(req.ctx.user, pathInt(id), _modelValues(await body(req), creating: false));
       return json(catalog.model(req.ctx.user, pathInt(id)));
     });
@@ -70,7 +70,7 @@ class GenRoutes {
       final id = catalog.addLora(req.ctx.user, _loraValues(await body(req), creating: true));
       return json(catalog.lora(req.ctx.user, id), status: 201);
     });
-    r.patch('/api/gen/loras/<id>', (Request req, String id) async {
+    r.put('/api/gen/loras/<id>', (Request req, String id) async {
       catalog.updateLora(req.ctx.user, pathInt(id), _loraValues(await body(req), creating: false));
       return json(catalog.lora(req.ctx.user, pathInt(id)));
     });
@@ -126,7 +126,7 @@ class GenRoutes {
           loras: _loras(uid, b['loras']));
       return json(records.preset(uid, pid), status: 201);
     });
-    r.patch('/api/gen/presets/<id>', (Request req, String id) async {
+    r.put('/api/gen/presets/<id>', (Request req, String id) async {
       final uid = req.ctx.user;
       final pid = records.preset(uid, pathInt(id))['id'] as int;
       final b = await body(req);
@@ -155,7 +155,7 @@ class GenRoutes {
       return json(records.record(uid, rid), status: 201);
     });
     r.get('/api/gen/records/<id>', (Request req, String id) => json(records.record(req.ctx.user, pathInt(id))));
-    r.patch('/api/gen/records/<id>', (Request req, String id) async {
+    r.put('/api/gen/records/<id>', (Request req, String id) async {
       final uid = req.ctx.user;
       final rec = records.record(uid, pathInt(id));
       final cid = rec['character_id'] as int;

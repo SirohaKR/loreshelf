@@ -1,11 +1,12 @@
 // 캐릭터 상세 — 프로필 / 갤러리 탭, 즐겨찾기, 편집, 옮기기·분기·휴지통.
 import { api, assetUrl } from '../api.js';
+import { renderPromptTab } from './character_prompt.js';
 import { genreChips, options } from '../parts.js';
 import { $, $$, KIND, attempt, confirmDialog, html, markdown, openMenu, openModal, pickFiles, portrait, render as put, toast, visibilityChip } from '../ui.js';
 
 export async function render(el, { id }, query, app) {
   let c = await api.get(`/api/characters/${id}`);
-  let tab = query.tab === 'gallery' ? 'gallery' : 'profile';
+  let tab = ['gallery', 'prompt'].includes(query.tab) ? query.tab : 'profile';
 
   const draw = () => {
     const where = c.project_id
@@ -37,10 +38,10 @@ export async function render(el, { id }, query, app) {
       <div class="tabs" role="tablist">
         <a class="${tab === 'profile' ? 'on' : ''}" data-tab="profile">프로필</a>
         <a class="${tab === 'gallery' ? 'on' : ''}" data-tab="gallery">갤러리 ${c.gallery.length}</a>
-        <a class="off" title="2단계에서 만들어요">이미지·프롬프트</a>
+        <a class="${tab === 'prompt' ? 'on' : ''}" data-tab="prompt">이미지·프롬프트</a>
         <a class="off" title="3단계에서 만들어요">챗봇 설정</a>
       </div>
-      <div data-body>${tab === 'profile' ? profile() : gallery()}</div>`,
+      <div data-body>${tab === 'profile' ? profile() : tab === 'gallery' ? gallery() : ''}</div>`,
     );
     bind();
   };
@@ -92,10 +93,11 @@ export async function render(el, { id }, query, app) {
       : html`<div class="card empty-state"><b>갤러리가 비어 있어요</b>이미지를 올리면 여기에 모여요.</div>`}`;
 
   const bind = () => {
+    if (tab === 'prompt') renderPromptTab($('[data-body]', el), c).catch((e) => toast(e.message, 'error'));
     $$('[data-tab]', el).forEach((a) =>
       a.addEventListener('click', () => {
         tab = a.dataset.tab;
-        history.replaceState(null, '', `#/characters/${c.id}${tab === 'gallery' ? '?tab=gallery' : ''}`);
+        history.replaceState(null, '', `#/characters/${c.id}${tab === 'profile' ? '' : `?tab=${tab}`}`);
         draw();
       }),
     );

@@ -10,6 +10,7 @@ import * as projects from './pages/projects.js';
 import * as search from './pages/search.js';
 import * as trash from './pages/trash.js';
 import * as settings from './pages/settings.js';
+import * as genTools from './pages/gen_tools.js';
 import { renderAuth } from './pages/auth.js';
 
 // 주소 → 페이지. :id 는 숫자.
@@ -30,6 +31,7 @@ const ROUTES = [
   ['/search', search.render, ''],
   ['/trash', trash.render, '휴지통'],
   ['/settings', settings.render, '설정'],
+  ['/gen', genTools.render, '생성 도구'],
 ];
 
 function match(path) {
@@ -83,6 +85,7 @@ const NAV = [
   ['/', '⌂', '홈'],
   ['/characters', '☺', '캐릭터', 'characters'],
   ['/projects', '▣', '프로젝트', 'projects'],
+  ['/gen', '✦', '생성 도구'],
 ];
 
 function newMenuItems() {
@@ -135,6 +138,7 @@ function renderShell() {
   $('[data-new-m]').onclick = () => openSheet(newMenuItems());
   $('[data-more]').onclick = () =>
     openSheet([
+      { label: '✦ 생성 도구', onClick: () => app.navigate('/gen') },
       { label: '🗑 휴지통', onClick: () => app.navigate('/trash') },
       { label: '⚙ 설정', onClick: () => app.navigate('/settings') },
     ]);

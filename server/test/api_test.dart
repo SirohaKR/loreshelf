@@ -313,14 +313,14 @@ void main() {
       final m = await c.ok('POST', '/api/gen/models', {'gen_platform_id': sd['id'], 'name': 'illustriousXL_v01', 'base_model': 'Illustrious'});
       expect(m['base_model'], 'Illustrious');
       expect((await c.ok('GET', '/api/gen/platforms') as List)[1]['models'].length, 1);
-      await c.ok('PATCH', '/api/gen/platforms/${sd['id']}', {'name': 'Forge'});
-      expect((await c.call('PATCH', '/api/gen/platforms/${sd['id']}', {'name': 'NovelAI'})).$1, 409);
+      await c.ok('PUT', '/api/gen/platforms/${sd['id']}', {'name': 'Forge'});
+      expect((await c.call('PUT', '/api/gen/platforms/${sd['id']}', {'name': 'NovelAI'})).$1, 409);
 
       final l = await c.ok('POST', '/api/gen/loras', {'name': 'liaBellot_v2', 'trigger_words': 'lia bellot', 'default_weight': 0.8});
       expect(l['default_weight'], 0.8);
       expect((await c.call('POST', '/api/gen/loras', {'name': 'LIABELLOT_V2'})).$1, 409);
-      expect((await c.call('PATCH', '/api/gen/loras/${l['id']}', {'default_weight': 99})).$1, 400);
-      await c.ok('PATCH', '/api/gen/loras/${l['id']}', {'note': '캐릭터 LoRA'});
+      expect((await c.call('PUT', '/api/gen/loras/${l['id']}', {'default_weight': 99})).$1, 400);
+      await c.ok('PUT', '/api/gen/loras/${l['id']}', {'note': '캐릭터 LoRA'});
       expect((await c.ok('GET', '/api/gen/loras') as List).single['note'], '캐릭터 LoRA');
     });
 
@@ -345,7 +345,7 @@ void main() {
       expect(preset['loras'].single['weight'], 0.8);
 
       expect((await c.call('POST', '/api/characters/${ch['id']}/gen-presets', {'name': '평상복', 'loras': [{'name': '없는것'}]})).$1, 400);
-      await c.ok('PATCH', '/api/gen/presets/${preset['id']}', {'name': '전투복 v2', 'loras': []});
+      await c.ok('PUT', '/api/gen/presets/${preset['id']}', {'name': '전투복 v2', 'loras': []});
       final list = await c.ok('GET', '/api/characters/${ch['id']}/gen-presets') as List;
       expect(list.single['name'], '전투복 v2');
       expect(list.single['loras'], isEmpty);
@@ -396,9 +396,9 @@ void main() {
       final list = await c.ok('GET', '/api/characters/${ch['id']}/gen-records') as List;
       expect(list.map((r) => [r['id'], r['is_cover']]), [[second['id'], 1], [rec['id'], 0]]);
 
-      expect((await c.call('PATCH', '/api/gen/records/${rec['id']}', {'seed': 'abc'})).$1, 400);
-      expect((await c.call('PATCH', '/api/gen/records/${rec['id']}', {'model': 'x', 'gen_platform_id': null})).$1, 400);
-      final edited = await c.ok('PATCH', '/api/gen/records/${rec['id']}', {'note': '손이 잘 나옴', 'loras': []});
+      expect((await c.call('PUT', '/api/gen/records/${rec['id']}', {'seed': 'abc'})).$1, 400);
+      expect((await c.call('PUT', '/api/gen/records/${rec['id']}', {'model': 'x', 'gen_platform_id': null})).$1, 400);
+      final edited = await c.ok('PUT', '/api/gen/records/${rec['id']}', {'note': '손이 잘 나옴', 'loras': []});
       expect(edited['note'], '손이 잘 나옴');
       expect(edited['loras'], isEmpty);
       expect(edited['seed'], 2984471023);
@@ -414,7 +414,7 @@ void main() {
       expect((await c.call('POST', '/api/characters/${b['id']}/gen-records', {'gen_preset_id': preset['id']})).$1, 400);
       await c.ok('DELETE', '/api/characters/${a['id']}');
       expect((await c.call('GET', '/api/characters/${a['id']}/gen-presets')).$1, 404);
-      expect((await c.call('PATCH', '/api/gen/presets/${preset['id']}', {'name': 'x'})).$1, 404);
+      expect((await c.call('PUT', '/api/gen/presets/${preset['id']}', {'name': 'x'})).$1, 404);
     });
   });
 }
