@@ -1,4 +1,4 @@
-# LoreShelf — Dart 작업 공간 (server = 서버, app = Flutter 앱. 2단계에서 shared/ 추가 예정)
+# LoreShelf — Dart 작업 공간 (server = 서버, app = Flutter 앱. shared = 둘이 같이 쓰는 코드)
 name: loreshelf_workspace
 publish_to: none
 environment:
@@ -6,3 +6,4 @@ environment:
 workspace:
   - server
   - app
+  - shared
