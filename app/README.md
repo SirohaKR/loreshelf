@@ -5,9 +5,11 @@
 - 로그인 (쿠키 세션 `ls_session`, 기기에 저장해서 다시 켜도 유지)
 - 홈: 숫자 요약, 최근 수정한 캐릭터, 프로젝트
 - 캐릭터 목록: 전체 / 서재 / 프로젝트별 필터 + 검색
-- 캐릭터 상세: 프로필(기본 정보·성격·대사·소개), 갤러리(눌러서 크게)
+- 캐릭터 상세: 프로필(기본 정보·성격·대사·소개), 갤러리(눌러서 크게), 이미지·프롬프트(고정 프롬프트 줄별·전체 복사 SD/NovelAI 형식, 생성 기록 — 눌러서 자세히)
 - 프로젝트 목록·상세: 종류·진행도·장르 태그(분류별), 전용/연결 캐릭터
 - 라이트/다크 전환, 넓은 화면은 왼쪽 메뉴 · 폰은 아래 탭
+
+프롬프트 글 만들기는 서버와 같은 `shared/` 패키지(`loreshelf_shared`)를 써요.
 
 쓰는 것: **Riverpod**(`@riverpod` 코드 생성 + `hooks_riverpod`) · **flutter_hooks** · **freezed** · `http` · `shared_preferences`.
 코드 설명은 [../docs/flutter-공부노트.md](../docs/flutter-공부노트.md).
@@ -24,7 +26,7 @@ lib/
 │  │             app_error_toast, double_back_to_exit ...)
 │  ├─ network/   api_client (+ provider)
 │  └─ storage/   preferences_provider
-└─ features/<기능>/          auth · home · characters · projects · shell
+└─ features/<기능>/          auth · home · characters · projects · gen · shell
    ├─ data/                  리포지토리 구현 (API 호출) + 그 provider
    ├─ domain/                엔티티(freezed) · 리포지토리 인터페이스
    └─ presentation/

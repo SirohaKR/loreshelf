@@ -92,6 +92,25 @@ void main() {
     expect(s['Version'], 'v1.10.1');
   });
 
+  group('프롬프트 글로 만들기', () {
+    final tags = {
+      'quality': [const PromptTag('masterpiece', 1)],
+      'character': [const PromptTag('1girl', 1), const PromptTag('silver hair', 1.2)],
+    };
+    test('SD 형식: 카테고리 순서, 가중치, LoRA, 네거티브 줄', () {
+      expect(formatPrompt(tags, negative: ['lowres'], loras: [const PromptLora('lia', 0.8)]),
+          '1girl, (silver hair:1.2), masterpiece, <lora:lia:0.8>\nNegative prompt: lowres');
+    });
+    test('NovelAI 형식: LoRA 없음', () {
+      expect(formatPrompt(tags, loras: [const PromptLora('lia', 1)], novelai: true), '1girl, 1.2::silver hair::, masterpiece');
+    });
+    test('다시 나누면 같은 태그', () {
+      final p = parsePrompt(formatPrompt(tags, negative: ['lowres']));
+      expect(p.tagsOf('character'), tags['character']);
+      expect(p.negative, ['lowres']);
+    });
+  });
+
   test('빈 입력', () {
     final p = parsePrompt('  \n ');
     expect(p.platform, isNull);

@@ -206,3 +206,25 @@ Map<String, String> parseWebuiSettings(String line) {
   }
   return out;
 }
+
+String _w(double n) {
+  final r = (n * 100).round() / 100;
+  return r == r.truncateToDouble() ? '${r.toInt()}' : '$r';
+}
+
+/// 태그 하나 → 글. SD: `(tag:1.2)`, NovelAI: `1.2::tag::`
+String formatTag(PromptTag t, {bool novelai = false}) =>
+    t.weight == 1 ? t.tag : (novelai ? '${_w(t.weight)}::${t.tag}::' : '(${t.tag}:${_w(t.weight)})');
+
+/// 분류된 태그 → 붙여넣을 프롬프트 글 (카테고리 순서대로). 웹 화면의 promptText와 같은 결과.
+/// SD 형식은 LoRA를 `<lora:이름:0.8>`로 붙이고 네거티브는 "Negative prompt:" 줄, NovelAI는 LoRA 없이 "네거티브:" 줄.
+String formatPrompt(Map<String, List<PromptTag>> tags,
+    {List<String> negative = const [], List<PromptLora> loras = const [], bool novelai = false}) {
+  final parts = [
+    for (final k in promptCategoryKeys) ...?tags[k]?.map((t) => formatTag(t, novelai: novelai)),
+    if (!novelai) ...loras.map((l) => '<lora:${l.name}:${_w(l.weight)}>'),
+  ];
+  var out = parts.join(', ');
+  if (negative.isNotEmpty) out += '\n${novelai ? '네거티브: ' : 'Negative prompt: '}${negative.join(', ')}';
+  return out;
+}
