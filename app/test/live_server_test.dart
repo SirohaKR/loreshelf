@@ -11,6 +11,9 @@ import 'package:loreshelf_app/features/auth/data/auth_repository_impl.dart';
 import 'package:loreshelf_app/features/characters/data/characters_repository_impl.dart';
 import 'package:loreshelf_app/features/characters/domain/character_draft.dart';
 import 'package:loreshelf_app/features/characters/domain/character_scope.dart';
+import 'package:loreshelf_app/features/gen/data/gen_repository_impl.dart';
+import 'package:loreshelf_app/features/gen/domain/gen.dart';
+import 'package:loreshelf_app/features/gen/domain/gen_draft.dart';
 import 'package:loreshelf_app/features/home/data/home_repository_impl.dart';
 import 'package:loreshelf_app/features/projects/data/projects_repository_impl.dart';
 import 'package:loreshelf_app/features/projects/domain/project_draft.dart';
@@ -194,5 +197,72 @@ void main() {
       await trashRepo.purge(TrashKind.projects, project.id);
     }
     await expectLater(projectsRepo.fetchDetail(project.id), throwsA(isA<ApiException>()));
+  }, skip: skip);
+
+  test('고정 프롬프트·생성 기록 만들기 → 고치기 → ★대표로 → 지우기', () async {
+    final (api, _) = await login();
+    final charactersRepo = CharactersRepositoryImpl(api);
+    final genRepo = GenRepositoryImpl(api);
+
+    final character = await charactersRepo.save(null, CharacterDraft.empty().copyWith(name: '앱 테스트 gen 캐릭터'));
+    try {
+      // 사전·내 분류 사전은 읽기만 — 깨지지 않고 받아지는지만 확인
+      final loras = await genRepo.fetchLoras();
+      final learned = await genRepo.fetchLearnedDictionary();
+      expect(learned, isA<Map<String, String>>());
+
+      // 붙여넣은 글을 분류해서 고정 프롬프트로 저장
+      final classified = classify('1girl, silver hair, masterpiece\nNegative prompt: lowres', learned: learned);
+      var preset = await genRepo.savePreset(
+        character.id,
+        null,
+        GenPresetDraft.empty().copyWith(name: '테스트 프리셋', tags: classified.tags, negative: classified.negative),
+      );
+      expect(preset.name, '테스트 프리셋');
+      expect(preset.tags['character']!.map((t) => t.tag), contains('silver hair'));
+      expect(preset.negative, ['lowres']);
+
+      preset = await genRepo.savePreset(character.id, preset.id, GenPresetDraft.fromPreset(preset).copyWith(name: '테스트 프리셋 2'));
+      expect(preset.name, '테스트 프리셋 2');
+      final presets = await genRepo.fetchPresets(character.id);
+      expect(presets.map((p) => p.id), contains(preset.id));
+
+      // 생성 기록 만들기 → 고치기 → ★대표로
+      var record = await genRepo.saveRecord(
+        character.id,
+        null,
+        GenRecordDraft.empty().copyWith(
+          title: '테스트 기록',
+          platform: '테스트 플랫폼',
+          model: '테스트 모델',
+          genPresetId: preset.id,
+          seed: 12345,
+          steps: 20,
+          loras: loras.isEmpty ? const [] : [GenLoraUse(genLoraId: loras.first.id, name: loras.first.name, weight: 0.8)],
+        ),
+      );
+      expect(record.title, '테스트 기록');
+      expect(record.platformName, '테스트 플랫폼'); // platform 이름으로 보내면 서버가 자동으로 만들어 붙인다
+      expect(record.presetName, '테스트 프리셋 2');
+      expect(record.seed, 12345);
+      expect(record.isCover, isFalse);
+
+      record = await genRepo.saveRecord(character.id, record.id, GenRecordDraft.fromRecord(record).copyWith(note: '메모예요'));
+      expect(record.note, '메모예요');
+
+      record = await genRepo.setCover(record.id);
+      expect(record.isCover, isTrue);
+
+      final records = await genRepo.fetchRecords(character.id);
+      expect(records.first.id, record.id); // ★대표가 맨 앞
+
+      await genRepo.deleteRecord(record.id);
+      await genRepo.deletePreset(preset.id);
+      expect(await genRepo.fetchRecords(character.id), isEmpty);
+      expect(await genRepo.fetchPresets(character.id), isEmpty);
+    } finally {
+      await api.delete('/api/characters/${character.id}');
+      await TrashRepositoryImpl(api).purge(TrashKind.characters, character.id);
+    }
   }, skip: skip);
 }

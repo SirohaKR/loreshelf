@@ -1,4 +1,6 @@
 // 이미지·프롬프트(2단계) — 엔티티 JSON, 프롬프트 글 만들기, 탭 화면(가짜 리포지토리)
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -6,6 +8,7 @@ import 'package:loreshelf_app/core/storage/preferences_provider.dart';
 import 'package:loreshelf_app/core/theme/app_theme.dart';
 import 'package:loreshelf_app/features/gen/data/gen_repository_impl.dart';
 import 'package:loreshelf_app/features/gen/domain/gen.dart';
+import 'package:loreshelf_app/features/gen/domain/gen_draft.dart';
 import 'package:loreshelf_app/features/gen/domain/gen_repository.dart';
 import 'package:loreshelf_app/features/gen/presentation/widgets/character_gen_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,6 +58,63 @@ class FakeGenRepository implements GenRepository {
 
   @override
   Future<List<GenRecord>> fetchRecords(int characterId) async => [GenRecord.fromJson(recordJson)];
+
+  @override
+  Future<List<GenLora>> fetchLoras() async => const [GenLora(id: 3, name: 'liaBellot_v2', defaultWeight: 0.8)];
+
+  @override
+  Future<Map<String, String>> fetchLearnedDictionary() async => const {};
+
+  final savedPresets = <Map<String, Object?>>[];
+  final savedRecords = <Map<String, Object?>>[];
+  final calls = <String>[];
+
+  @override
+  Future<GenPreset> savePreset(int characterId, int? id, GenPresetDraft draft) async {
+    savedPresets.add(draft.toPayload());
+    return GenPreset(id: id ?? 90, name: draft.name, tags: draft.tags, negative: draft.negative, loras: draft.loras);
+  }
+
+  @override
+  Future<void> deletePreset(int id) async => calls.add('deletePreset $id');
+
+  @override
+  Future<GenRecord> saveRecord(int characterId, int? id, GenRecordDraft draft) async {
+    savedRecords.add(draft.toPayload());
+    return GenRecord(
+      id: id ?? 91,
+      title: draft.title,
+      assetId: draft.assetId,
+      platformName: draft.platform,
+      modelName: draft.model,
+      tags: draft.tags,
+      negative: draft.negative,
+      loras: draft.loras,
+      seed: draft.seed,
+      sampler: draft.sampler,
+      steps: draft.steps,
+      cfgScale: draft.cfgScale,
+      width: draft.width,
+      height: draft.height,
+      note: draft.note,
+      isCover: draft.isCover,
+    );
+  }
+
+  @override
+  Future<void> deleteRecord(int id) async => calls.add('deleteRecord $id');
+
+  @override
+  Future<GenRecord> setCover(int id) async {
+    calls.add('setCover $id');
+    return GenRecord.fromJson({...recordJson, 'id': id, 'is_cover': 1});
+  }
+
+  @override
+  Future<int> uploadImage(Uint8List bytes, String fileName) async {
+    calls.add('upload $fileName');
+    return 77;
+  }
 }
 
 void main() {

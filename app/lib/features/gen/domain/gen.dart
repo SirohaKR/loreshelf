@@ -71,6 +71,9 @@ abstract class GenRecord with _$GenRecord, PromptParts {
     required int id,
     String? title,
     int? assetId,
+    int? genPlatformId,
+    int? genModelId,
+    int? genPresetId,
     String? platformName,
     String? modelName,
     String? presetName,
@@ -86,6 +89,7 @@ abstract class GenRecord with _$GenRecord, PromptParts {
     int? height,
     String? note,
     @IntBool() @Default(false) bool isCover,
+    @Default({}) Map<String, Object?> extra,
     String? createdAt,
   }) = _GenRecord;
 
@@ -93,4 +97,22 @@ abstract class GenRecord with _$GenRecord, PromptParts {
 
   /// "2984471023 · Euler a · 28스텝"
   String get seedLine => [if (seed != null) '$seed', ?sampler, if (steps != null) '$steps스텝'].join(' · ');
+}
+
+/// LoRA 사전 (생성 도구 목록) — 고정 프롬프트는 이 목록에 있는 LoRA만 저장할 수 있다
+@freezed
+abstract class GenLora with _$GenLora {
+  const factory GenLora({
+    required int id,
+    required String name,
+    String? fileName,
+    String? baseModel,
+    String? triggerWords,
+    @Default(1.0) double defaultWeight,
+    String? sourceUrl,
+    String? note,
+    @Default(0) int useCount,
+  }) = _GenLora;
+
+  factory GenLora.fromJson(Map<String, Object?> json) => _$GenLoraFromJson(json);
 }

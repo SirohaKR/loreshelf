@@ -67,6 +67,9 @@ _GenRecord _$GenRecordFromJson(Map<String, dynamic> json) => _GenRecord(
   id: (json['id'] as num).toInt(),
   title: json['title'] as String?,
   assetId: (json['asset_id'] as num?)?.toInt(),
+  genPlatformId: (json['gen_platform_id'] as num?)?.toInt(),
+  genModelId: (json['gen_model_id'] as num?)?.toInt(),
+  genPresetId: (json['gen_preset_id'] as num?)?.toInt(),
   platformName: json['platform_name'] as String?,
   modelName: json['model_name'] as String?,
   presetName: json['preset_name'] as String?,
@@ -99,6 +102,7 @@ _GenRecord _$GenRecordFromJson(Map<String, dynamic> json) => _GenRecord(
   isCover: json['is_cover'] == null
       ? false
       : const IntBool().fromJson(json['is_cover']),
+  extra: json['extra'] as Map<String, dynamic>? ?? const {},
   createdAt: json['created_at'] as String?,
 );
 
@@ -107,6 +111,9 @@ Map<String, dynamic> _$GenRecordToJson(_GenRecord instance) =>
       'id': instance.id,
       'title': instance.title,
       'asset_id': instance.assetId,
+      'gen_platform_id': instance.genPlatformId,
+      'gen_model_id': instance.genModelId,
+      'gen_preset_id': instance.genPresetId,
       'platform_name': instance.platformName,
       'model_name': instance.modelName,
       'preset_name': instance.presetName,
@@ -124,5 +131,30 @@ Map<String, dynamic> _$GenRecordToJson(_GenRecord instance) =>
       'height': instance.height,
       'note': instance.note,
       'is_cover': const IntBool().toJson(instance.isCover),
+      'extra': instance.extra,
       'created_at': instance.createdAt,
     };
+
+_GenLora _$GenLoraFromJson(Map<String, dynamic> json) => _GenLora(
+  id: (json['id'] as num).toInt(),
+  name: json['name'] as String,
+  fileName: json['file_name'] as String?,
+  baseModel: json['base_model'] as String?,
+  triggerWords: json['trigger_words'] as String?,
+  defaultWeight: (json['default_weight'] as num?)?.toDouble() ?? 1.0,
+  sourceUrl: json['source_url'] as String?,
+  note: json['note'] as String?,
+  useCount: (json['use_count'] as num?)?.toInt() ?? 0,
+);
+
+Map<String, dynamic> _$GenLoraToJson(_GenLora instance) => <String, dynamic>{
+  'id': instance.id,
+  'name': instance.name,
+  'file_name': instance.fileName,
+  'base_model': instance.baseModel,
+  'trigger_words': instance.triggerWords,
+  'default_weight': instance.defaultWeight,
+  'source_url': instance.sourceUrl,
+  'note': instance.note,
+  'use_count': instance.useCount,
+};
