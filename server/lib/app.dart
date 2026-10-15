@@ -10,6 +10,7 @@ import 'features/assets/assets_routes.dart';
 import 'features/auth/auth_middleware.dart';
 import 'features/auth/auth_routes.dart';
 import 'features/characters/characters_routes.dart';
+import 'features/genres/genres_routes.dart';
 import 'features/home/home_routes.dart';
 import 'features/projects/projects_routes.dart';
 import 'features/search/search_routes.dart';
@@ -33,6 +34,7 @@ Handler buildApp(AppContext app) {
     HomeRoutes(app).register,
     WorldsRoutes(app).register,
     ProjectsRoutes(app).register,
+    GenresRoutes(app).register,
     CharactersRoutes(app).register,
     TagsRoutes(app).register,
     AssetsRoutes(app).register,

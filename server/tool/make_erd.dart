@@ -9,7 +9,7 @@ import 'package:server/core/migrations.dart';
 const _groups = [
   ('계정 · 설정', '#6b7280', ['users', 'sessions', 'settings']),
   ('파일 · 태그', '#0f8b8d', ['assets', 'tags']),
-  ('세계관 · 프로젝트', '#d9822b', ['worlds', 'projects', 'project_characters']),
+  ('세계관 · 프로젝트 · 장르 태그', '#d9822b', ['worlds', 'projects', 'project_characters', 'genres', 'project_genres']),
   ('캐릭터', '#3f5bd8', ['characters', 'character_templates', 'character_fields', 'character_traits', 'character_quotes', 'character_relations', 'character_assets', 'character_tags']),
   ('문서 · 메모 · 연표 · 기록', '#2f9e6b', ['docs', 'memos', 'memo_tags', 'timeline_events', 'timeline_event_characters', 'revisions']),
   ('챗봇 (chatbot_)', '#d6487a', ['chatbot_versions', 'chatbot_greetings', 'chatbot_lore_entries', 'chatbot_test_messages']),

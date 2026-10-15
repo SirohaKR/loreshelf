@@ -3,7 +3,7 @@
 > 이 문서의 목적: **나중에 내가 DB를 직접 고칠 때, 이름만 보고 뜻과 연결을 알 수 있게** 하는 것.
 > 규칙에 예외를 만들지 않는 게 핵심이에요. 예외가 꼭 필요하면 이 문서의 "예외 목록"에 적어요.
 
-- 스키마 원본: [server/migrations/](../server/migrations/) (SQLite, 테이블 41개). 지금 모습 = 0001부터 마지막 번호까지 차례로 실행한 결과
+- 스키마 원본: [server/migrations/](../server/migrations/) (SQLite, 테이블 43개). 지금 모습 = 0001부터 마지막 번호까지 차례로 실행한 결과
 - 그림: [erd.html](erd.html) — `server` 폴더에서 `dart run tool/make_erd.dart`로 마이그레이션에서 자동 생성
 - 규칙 자동 검사: [server/test/schema_rules_test.dart](../server/test/schema_rules_test.dart)
 - 언어 선택: [언어-선택.md](언어-선택.md)
@@ -95,6 +95,7 @@
 | `character_relations.direction` | `one_way` / `two_way` | 한쪽 / 서로 |
 | `game_quests.status` | `draft` / `planned` / `done` | 초안 / 기획 중 / 확정 |
 | `chatbot_test_messages.role` | `user` / `assistant` | 나 / 캐릭터 |
+| `genres.category` | `genre` / `setting` / `mood` / `trope` / `game` / `custom` | 장르 / 배경·무대 / 분위기·관계 / 소재·설정 / 게임·형식 / 직접 추가 |
 | `gen_tag_rules.category` | `character` / `outfit` / `expression` / `pose` / `background` / `style` / `quality` / `etc` | 인물·외형 / 의상·소품 / 표정 / 포즈·구도 / 배경·조명 / 스타일·화풍 / 품질 / 미분류 |
 
 ### 2-6. 인덱스 · 제약 이름
@@ -117,6 +118,13 @@
 | 소유자 | 맨 위 단위(worlds, projects, characters, assets, tags, memos, gen_platforms, gen_loras …)에 `user_id`. 딸린 테이블은 주인을 통해 알 수 있으므로 `user_id`를 다시 넣지 않음 |
 | 외래키 | 연결할 때마다 `PRAGMA foreign_keys = ON` (SQLite는 기본이 꺼짐) |
 | 비밀 | `is_secret = 1`인 행은 블로그 API가 **서버에서 빼고** 보냄 (CSS로 숨기지 않음) |
+
+### 장르·세계관 태그 (0002에서 추가)
+- 세계관은 프로젝트마다 설명(`projects.body_md`)에 쓰고, 프로젝트에는 `genres` 목록에서 골라 `project_genres`로 붙여요 (로판, 학원, 청춘, 복수 …).
+- `genres.user_id`가 **NULL이면 기본 제공 태그**(0002 마이그레이션이 넣음), 값이 있으면 그 사용자가 직접 추가한 태그. 기본 제공 태그는 지울 수 없어요.
+- 이름은 같은 사람 안에서(기본 제공 포함) 겹치지 않아요: `uq_genres_user_id_name`.
+- 캐릭터 태그(`tags`, 자유 입력)와는 별개예요. 장르 태그 = 작품의 성격, 캐릭터 태그 = 캐릭터 키워드.
+- `worlds` 테이블과 `world_id` 칸은 데이터 보존을 위해 남겨 뒀지만 화면에서는 더 이상 쓰지 않아요.
 
 ### 소속 표현 — "여러 곳 중 하나에 속함"
 `docs`처럼 세계관 / 프로젝트 / 캐릭터 중 하나에 속하는 경우, `owner_type + owner_id` 대신 **참조 칸을 각각 두고 CHECK로 정확히 하나만** 채우게 해요. 이렇게 하면 외래키가 살아 있어서 잘못된 번호가 들어갈 수 없어요.
@@ -214,7 +222,7 @@ CREATE TABLE game_items (
 - [x] `updated_at`이 있으면 `created_at`도 있음
 - [x] 인덱스 이름 `idx_/uq_테이블_` 형식
 
-2026-10-15 기준 `0001_init.sql`: **테이블 41개 · 칸 309개 · 위반 0개**. 제약도 샘플 데이터로 확인함 (docs 소속 0개/2개, 현재 챗봇 버전 2개, 잘못된 visibility·JSON, 자기 자신과의 관계, 없는 캐릭터 참조 → 모두 거부됨).
+2026-10-15 기준 `0002_add_genres.sql`까지: **테이블 43개 · 위반 0개**. 제약도 샘플 데이터로 확인함 (docs 소속 0개/2개, 현재 챗봇 버전 2개, 잘못된 visibility·JSON, 자기 자신과의 관계, 없는 캐릭터 참조 → 모두 거부됨).
 
 ---
 

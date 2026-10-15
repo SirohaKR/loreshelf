@@ -15,8 +15,8 @@ export async function render(el) {
     <div class="sub">${h.recent_characters[0] ? html`마지막 작업: ${h.recent_characters[0].name}` : '첫 캐릭터를 만들어 볼까요?'}</div>
     <div class="grid stats">
       ${stat(n.characters, '캐릭터', '☺', 'accent', '#/characters')}
-      ${stat(n.worlds, '세계관', '◎', 'ok', '#/worlds')}
       ${stat(n.projects, '프로젝트', '▣', 'warn', '#/projects')}
+      ${stat(n.library_characters, '서재 캐릭터', '☰', 'ok', '#/characters?scope=library')}
       ${stat(n.public_items, '공개 중', '◐', 'rose', '#/characters')}
     </div>
     <div class="home-layout">

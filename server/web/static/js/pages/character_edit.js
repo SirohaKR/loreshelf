@@ -25,18 +25,15 @@ const quoteRow = (q = {}) => html`<div class="edit-row quote" data-row="quote">
 
 export async function render(el, params, query, app) {
   const editing = params.id != null;
-  const [c, projects, worlds, tags] = await Promise.all([
+  const [c, projects, tags] = await Promise.all([
     editing ? api.get(`/api/characters/${params.id}`) : Promise.resolve(null),
     api.get('/api/projects'),
-    api.get('/api/worlds'),
     api.get('/api/tags'),
   ]);
   const v = c ?? {
-    name: '', project_id: query.project ? Number(query.project) : null, world_id: query.world ? Number(query.world) : null,
+    name: '', project_id: query.project ? Number(query.project) : null, world_id: null,
     visibility: 'private', fields: DEFAULT_FIELDS.map((label) => ({ label })), traits: [], quotes: [], tags: [],
   };
-  // 새로 만들 때 프로젝트를 고르면 그 프로젝트의 세계관을 기본으로
-  if (!editing && v.project_id && !v.world_id) v.world_id = projects.find((p) => p.id === v.project_id)?.world_id ?? null;
   let portraitId = v.portrait_asset_id ?? null;
   let tagList = [...(v.tags || [])];
 
@@ -53,7 +50,6 @@ export async function render(el, params, query, app) {
           <label class="f full">대표 한 줄 대사<input type="text" name="quote" value="${v.quote ?? ''}" maxlength="200" placeholder="왕관은 잃었어도, 검은 아직 내 손에 있어."></label>
           <label class="f">저장 위치 <small>프로젝트 전용 또는 공용 서재</small>
             <select name="project_id"><option value="">공용 서재</option>${options(projects.map((p) => [p.id, `${p.name} 전용 (${KIND[p.kind]})`]), v.project_id)}</select></label>
-          <label class="f">세계관<select name="world_id"><option value="">없음</option>${options(worlds.map((w) => [w.id, w.name]), v.world_id)}</select></label>
           <label class="f">공개 범위 <small>블로그는 4단계에서 열려요</small><select name="visibility">${options(Object.entries(VISIBILITY), v.visibility)}</select></label>
           <div class="f" style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700">테마색
             <div style="display:flex;gap:8px;align-items:center">
@@ -192,7 +188,7 @@ export async function render(el, params, query, app) {
     }
     const payload = {
       name: nameInput.value, name_en: form.name_en.value, tagline: form.tagline.value, quote: form.quote.value,
-      project_id: form.project_id.value || null, world_id: form.world_id.value || null, visibility: form.visibility.value,
+      project_id: form.project_id.value || null, world_id: v.world_id ?? null, visibility: form.visibility.value,
       theme_color: color.disabled ? null : color.value, portrait_asset_id: portraitId,
       is_favorite: !!c?.is_favorite, is_card_downloadable: !!c?.is_card_downloadable, sort_order: c?.sort_order ?? 0,
       fields: collect('field'), traits: collect('trait'), quotes: collect('quote'), tags: tagList, body_md: form.body_md.value,

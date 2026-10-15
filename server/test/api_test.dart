@@ -185,6 +185,46 @@ void main() {
     });
   });
 
+  group('장르·세계관 태그', () {
+    setUp(setup);
+
+    test('기본 목록 → 프로젝트에 붙이기 → 태그로 거르기 → 검색 → 직접 추가·삭제', () async {
+      final list = await c.ok('GET', '/api/genres') as List;
+      expect(list.length, greaterThan(100));
+      int idOf(String name) => list.firstWhere((g) => g['name'] == name)['id'] as int;
+      final rofan = idOf('로맨스 판타지'), school = idOf('학원'), revenge = idOf('복수');
+      expect({for (final g in list) g['category']}, containsAll(['genre', 'setting', 'mood', 'trope', 'game']));
+
+      final p = await c.ok('POST', '/api/projects', {'name': '잿빛 왕관', 'kind': 'game', 'genre_ids': [rofan, revenge, rofan]});
+      expect([for (final g in p['genres'] as List) g['name']], containsAll(['로맨스 판타지', '복수']));
+      expect((p['genres'] as List).length, 2, reason: '중복은 하나로');
+      await c.ok('POST', '/api/projects', {'name': '별빛 학원', 'kind': 'etc', 'genre_ids': [school]});
+
+      final filtered = await c.ok('GET', '/api/projects?genre_id=$rofan') as List;
+      expect([for (final x in filtered) x['name']], ['잿빛 왕관']);
+      expect(((await c.ok('GET', '/api/search?q=${Uri.encodeComponent('판타지')}'))['projects'] as List).single['name'], '잿빛 왕관');
+
+      // genre_ids 없이 고치면 태그는 그대로, 빈 목록이면 다 빠짐
+      var u = await c.ok('PUT', '/api/projects/${p['id']}', {'name': '잿빛 왕관', 'kind': 'game', 'progress_percent': 10});
+      expect((u['genres'] as List).length, 2);
+      u = await c.ok('PUT', '/api/projects/${p['id']}', {'name': '잿빛 왕관', 'kind': 'game', 'genre_ids': []});
+      expect(u['genres'], isEmpty);
+
+      // 전용 캐릭터 상세에 프로젝트 태그가 같이 온다
+      await c.ok('PUT', '/api/projects/${p['id']}', {'name': '잿빛 왕관', 'kind': 'game', 'genre_ids': [revenge]});
+      final ch = await c.ok('POST', '/api/characters', {'name': '리아', 'project_id': p['id']});
+      expect([for (final g in ch['project_genres'] as List) g['name']], ['복수']);
+
+      // 직접 추가: 기본 제공과 같은 이름이면 그 태그를 돌려줌
+      expect((await c.ok('POST', '/api/genres', {'name': '#학원'}))['id'], school);
+      final mine = await c.ok('POST', '/api/genres', {'name': '왕녀 생존기'});
+      expect(mine['category'], 'custom');
+      expect((await c.call('DELETE', '/api/genres/$school')).$1, 404, reason: '기본 제공은 못 지움');
+      await c.ok('DELETE', '/api/genres/${mine['id']}');
+      expect((await c.call('POST', '/api/projects', {'name': 'x', 'genre_ids': [999999]})).$1, 404);
+    });
+  });
+
   group('이미지', () {
     setUp(setup);
 

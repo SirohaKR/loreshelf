@@ -1,14 +1,26 @@
 // 프로젝트 — 목록, 상세(전용 + 연결 캐릭터, 서재에서 연결), 만들기·고치기.
 import { api, assetUrl } from '../api.js';
-import { bindFavorites, charactersGrid, emptyState, options, projectRow } from '../parts.js';
+import { bindFavorites, charactersGrid, emptyState, genreChips, options, pickGenres, projectRow } from '../parts.js';
 import { $, $$, KIND, KIND_CHIP, VISIBILITY, attempt, confirmDialog, html, markdown, openMenu, openModal, pickFiles, portrait, render as put, toast, visibilityChip } from '../ui.js';
 
-export async function renderList(el) {
-  const list = await api.get('/api/projects');
+export async function renderList(el, _params, query) {
+  const genreId = query.genre ? Number(query.genre) : null;
+  const [all, genres] = await Promise.all([api.get('/api/projects'), api.get('/api/genres')]);
+  const list = genreId ? all.filter((p) => p.genres.some((g) => g.id === genreId)) : all;
+  const used = genres.filter((g) => g.project_count > 0).sort((a, b) => b.project_count - a.project_count);
   put(
     el,
     html`<div class="page-head"><div><h1>프로젝트</h1><div class="sub">게임 · 챗봇 · 기타 작품 단위로 캐릭터를 묶어요</div></div><div class="sp"></div><a class="btn pri" href="#/projects/new">+ 새 프로젝트</a></div>
-    ${list.length ? html`<div class="card" style="padding:6px 18px">${list.map(projectRow)}</div>` : emptyState('프로젝트가 없어요', '게임이나 챗봇을 하나 만들어 보세요.', ['#/projects/new', '+ 새 프로젝트'])}`,
+    ${used.length
+      ? html`<div class="filters"><a class="chip ${genreId ? '' : 'a'}" href="#/projects">모든 장르</a>${used.map(
+          (g) => html`<a class="chip ${g.id === genreId ? 'a' : ''}" href="#/projects?genre=${g.id}">${g.name} ${g.project_count}</a>`,
+        )}</div>`
+      : ''}
+    ${list.length
+      ? html`<div class="card" style="padding:6px 18px">${list.map(projectRow)}</div>`
+      : genreId
+        ? html`<div class="card empty-state">이 태그가 붙은 프로젝트가 없어요.</div>`
+        : emptyState('프로젝트가 없어요', '게임이나 챗봇을 하나 만들어 보세요.', ['#/projects/new', '+ 새 프로젝트'])}`,
   );
 }
 
@@ -24,8 +36,9 @@ export async function renderDetail(el, { id }, _query, app) {
       <div class="page-head">
         ${p.cover_asset_id ? html`<img src="${assetUrl(p.cover_asset_id)}" alt="" style="width:64px;height:64px;border-radius:16px;object-fit:cover">` : ''}
         <div><h1>${p.name}</h1>
-          <div class="sub">${[p.summary, p.world_name && `세계관 '${p.world_name}' 연결`].filter(Boolean).join(' · ')}</div>
-          <div class="chips" style="margin-top:8px"><span class="chip ${KIND_CHIP[p.kind]}">${KIND[p.kind]}</span><span class="chip">기획 ${p.progress_percent}%</span>${visibilityChip(p.visibility)}</div></div>
+          <div class="sub">${p.summary || ''}</div>
+          <div class="chips" style="margin-top:8px"><span class="chip ${KIND_CHIP[p.kind]}">${KIND[p.kind]}</span><span class="chip">기획 ${p.progress_percent}%</span>${visibilityChip(p.visibility)}</div>
+          ${p.genres.length ? html`<div class="chips" style="margin-top:6px">${genreChips(p.genres, { link: true })}</div>` : ''}</div>
         <div class="sp"></div>
         <a class="btn pri" href="#/projects/${p.id}/edit">✎ 편집</a>
         <span class="menu-wrap"><button class="btn" data-more>⋯</button></span>
@@ -116,13 +129,11 @@ export async function renderDetail(el, { id }, _query, app) {
   draw();
 }
 
-export async function renderEdit(el, params, query, app) {
+export async function renderEdit(el, params, _query, app) {
   const editing = params.id != null;
-  const [p, worlds] = await Promise.all([
-    editing ? api.get(`/api/projects/${params.id}`) : Promise.resolve({ name: '', kind: 'game', visibility: 'private', progress_percent: 0, world_id: query.world ? Number(query.world) : null }),
-    api.get('/api/worlds'),
-  ]);
+  const p = editing ? await api.get(`/api/projects/${params.id}`) : { name: '', kind: 'game', visibility: 'private', progress_percent: 0, world_id: null, genres: [] };
   let coverId = p.cover_asset_id ?? null;
+  let genres = [...p.genres];
   put(
     el,
     html`<div class="crumb"><a href="#/projects">프로젝트</a> / ${editing ? html`<a href="#/projects/${p.id}">${p.name}</a> / 편집` : '새 프로젝트'}</div>
@@ -130,8 +141,9 @@ export async function renderEdit(el, params, query, app) {
     <form class="form" data-form novalidate><div class="card"><div class="form-grid">
       <label class="f">이름 *<input type="text" name="title" value="${p.name}" maxlength="60" required></label>
       <label class="f">종류<select name="kind">${options(Object.entries(KIND), p.kind)}</select></label>
-      <label class="f">세계관<select name="world_id"><option value="">없음</option>${options(worlds.map((w) => [w.id, w.name]), p.world_id)}</select></label>
       <label class="f">공개 범위<select name="visibility">${options(Object.entries(VISIBILITY), p.visibility)}</select></label>
+      <div class="f full" style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700">장르 · 세계관 태그 <small style="font-weight:400;color:var(--muted)">로판, 현판, 학원, 청춘, 복수 … 세계관의 자세한 설정은 아래 설명에 써요</small>
+        <div class="genre-field"><span data-genres class="chips"></span><button type="button" class="btn sm" data-pick-genres># 태그 고르기</button></div></div>
       <label class="f full">한 줄 소개<input type="text" name="summary" value="${p.summary ?? ''}" maxlength="200" placeholder="2D 턴제 RPG"></label>
       <label class="f full">기획 진행도 <small data-pct>${p.progress_percent}%</small><input type="range" name="progress_percent" min="0" max="100" step="5" value="${p.progress_percent}"></label>
       <div class="f full" style="display:flex;gap:12px;align-items:center;font-size:13px;font-weight:700">대표 이미지
@@ -143,6 +155,15 @@ export async function renderEdit(el, params, query, app) {
     </form>`,
   );
   const form = $('[data-form]', el);
+  const drawGenres = () => put($('[data-genres]', el), genres.length ? genreChips(genres) : html`<span class="sub">아직 없음</span>`);
+  drawGenres();
+  $('[data-pick-genres]', el).onclick = async () => {
+    const picked = await pickGenres(genres);
+    if (picked) {
+      genres = picked;
+      drawGenres();
+    }
+  };
   form.progress_percent.oninput = (e) => ($('[data-pct]', el).textContent = `${e.target.value}%`);
   const drawCover = () =>
     put($('[data-cover]', el), coverId ? html`<img src="${assetUrl(coverId)}" alt="" style="width:56px;height:56px;border-radius:10px;object-fit:cover">` : html`<span class="sub">없음</span>`);
@@ -161,7 +182,7 @@ export async function renderEdit(el, params, query, app) {
     e.preventDefault();
     const err = $('[data-err]', el);
     const payload = {
-      name: form.title.value, kind: form.kind.value, world_id: form.world_id.value || null, visibility: form.visibility.value,
+      name: form.title.value, kind: form.kind.value, world_id: p.world_id ?? null, genre_ids: genres.map((g) => g.id), visibility: form.visibility.value,
       summary: form.summary.value, progress_percent: Number(form.progress_percent.value), body_md: form.body_md.value, cover_asset_id: coverId, sort_order: p.sort_order ?? 0,
     };
     try {

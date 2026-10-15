@@ -7,20 +7,23 @@ import '../../core/db.dart';
 import '../../core/http.dart';
 import '../../core/owned.dart';
 import '../characters/characters_repository.dart';
+import '../genres/genres_repository.dart';
 import 'projects_repository.dart';
 
 class ProjectsRoutes {
   final Db db;
   final ProjectsRepository projects;
   final CharactersRepository characters;
+  final GenresRepository genres;
 
   ProjectsRoutes(AppContext app)
       : db = app.db,
         projects = ProjectsRepository(app.db),
-        characters = CharactersRepository(app.db);
+        characters = CharactersRepository(app.db),
+        genres = GenresRepository(app.db);
 
   void register(Router r) {
-    r.get('/api/projects', (Request req) => json(projects.list(req.ctx.user)));
+    r.get('/api/projects', (Request req) => json(projects.list(req.ctx.user, genreId: toIntOrNull(req.url.queryParameters['genre_id']))));
     r.post('/api/projects', _create);
     r.get('/api/projects/<id>', _detail);
     r.put('/api/projects/<id>', _update);
@@ -46,17 +49,34 @@ class ProjectsRoutes {
         'characters': characters.list(uid, projectId: id),
       };
 
+  /// 장르 태그 번호 목록 검사 (기본 제공이거나 내가 만든 것만, 30개까지).
+  List<int> _genreIds(int uid, Object? v) {
+    final ids = (v is List ? v : const []).map(toIntOrNull).whereType<int>().toSet().toList();
+    if (ids.length > 30) throw ApiError('장르 태그는 30개까지예요');
+    for (final id in ids) {
+      if (!genres.usable(uid, id)) throw ApiError('없는 장르 태그예요', 404);
+    }
+    return ids;
+  }
+
   Future<Response> _create(Request req) async {
-    final uid = req.ctx.user;
-    final id = projects.create(uid, _values(uid, await body(req)));
+    final uid = req.ctx.user, b = await body(req);
+    final id = db.tx(() {
+      final id = projects.create(uid, _values(uid, b));
+      genres.setForProject(id, _genreIds(uid, b['genre_ids']));
+      return id;
+    });
     return json(_detail0(uid, id), status: 201);
   }
 
   Response _detail(Request req, String id) => json(_detail0(req.ctx.user, pathInt(id)));
 
   Future<Response> _update(Request req, String id) async {
-    final uid = req.ctx.user, pid = pathInt(id);
-    projects.update(uid, pid, _values(uid, await body(req)));
+    final uid = req.ctx.user, pid = pathInt(id), b = await body(req);
+    db.tx(() {
+      projects.update(uid, pid, _values(uid, b));
+      if (b.containsKey('genre_ids')) genres.setForProject(pid, _genreIds(uid, b['genre_ids']));
+    });
     return json(_detail0(uid, pid));
   }
 

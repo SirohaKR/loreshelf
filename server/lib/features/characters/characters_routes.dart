@@ -47,10 +47,15 @@ class CharactersRoutes {
     ));
   }
 
-  Map<String, Object?> _detail0(int uid, int id) => {
-        ...characters.detail(uid, id),
-        'linked_projects': projects.linkedToCharacter(id),
-      };
+  Map<String, Object?> _detail0(int uid, int id) {
+    final c = characters.detail(uid, id);
+    return {
+      ...c,
+      'linked_projects': projects.linkedToCharacter(id),
+      // 전용 캐릭터는 소속 프로젝트의 장르·세계관 태그를 같이 보여 준다
+      'project_genres': c['project_id'] == null ? const [] : projects.get(uid, c['project_id'] as int)['genres'],
+    };
+  }
 
   Response _detail(Request req, String id) => json(_detail0(req.ctx.user, pathInt(id)));
 

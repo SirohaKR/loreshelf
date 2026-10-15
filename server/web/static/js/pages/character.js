@@ -1,6 +1,6 @@
 // 캐릭터 상세 — 프로필 / 갤러리 탭, 즐겨찾기, 편집, 옮기기·분기·휴지통.
 import { api, assetUrl } from '../api.js';
-import { options } from '../parts.js';
+import { genreChips, options } from '../parts.js';
 import { $, $$, KIND, attempt, confirmDialog, html, markdown, openMenu, openModal, pickFiles, portrait, render as put, toast, visibilityChip } from '../ui.js';
 
 export async function render(el, { id }, query, app) {
@@ -18,13 +18,14 @@ export async function render(el, { id }, query, app) {
         ${portrait(c)}
         <div class="info">
           <h1>${c.name}</h1>
-          ${c.name_en || c.world_name ? html`<div class="en">${[c.name_en, c.world_name && `세계관 ${c.world_name}`].filter(Boolean).join(' · ')}</div>` : ''}
+          ${c.name_en ? html`<div class="en">${c.name_en}</div>` : ''}
           ${c.quote ? html`<div class="one">“${c.quote}”</div>` : c.tagline ? html`<div class="one">${c.tagline}</div>` : html`<div style="height:10px"></div>`}
           <div class="where">${where}
             ${c.linked_projects.map((p) => html`<span class="member linked">연결</span><a href="#/projects/${p.id}">${p.name}</a>${p.role ? ` (${p.role})` : ''}`)}
             ${c.source_character_id ? html`<span>· 분기 원본 <a href="#/characters/${c.source_character_id}"><b>${c.source_character_name || '(삭제됨)'}</b></a></span>` : ''}
             ${visibilityChip(c.visibility)}
           </div>
+          ${c.project_genres.length ? html`<div class="chips" style="margin-bottom:6px" title="소속 프로젝트의 장르·세계관 태그">${genreChips(c.project_genres, { link: true })}</div>` : ''}
           ${c.tags.length ? html`<div class="chips" style="margin-bottom:14px">${c.tags.map((t) => html`<a class="chip" href="#/characters?tag=${encodeURIComponent(t)}">#${t}</a>`)}</div>` : ''}
           <div class="acts">
             <button class="btn" data-fav>${c.is_favorite ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기'}</button>

@@ -1,4 +1,4 @@
-// 통합 검색 DB — 캐릭터(이름·소개·대사·배경·기본 정보·태그), 세계관, 프로젝트.
+// 통합 검색 DB — 캐릭터(이름·소개·대사·배경·기본 정보·태그), 세계관, 프로젝트(이름·소개·설명·장르 태그).
 // 1인용 데이터 양이라 LIKE로 충분. 많아지면 SQLite FTS5로 바꾼다.
 import '../../core/db.dart';
 import '../characters/characters_repository.dart' show likePattern;
@@ -33,8 +33,9 @@ class SearchRepository {
         WHERE user_id = ?2 AND deleted_at IS NULL AND (name LIKE ?1 $_e OR summary LIKE ?1 $_e OR body_md LIKE ?1 $_e)
         ORDER BY (name LIKE ?1 $_e) DESC, updated_at DESC LIMIT 20''', [like, userId]);
     final projects = db.rows('''
-        SELECT id, name, kind, summary FROM projects
-        WHERE user_id = ?2 AND deleted_at IS NULL AND (name LIKE ?1 $_e OR summary LIKE ?1 $_e OR body_md LIKE ?1 $_e)
+        SELECT id, name, kind, summary FROM projects p
+        WHERE user_id = ?2 AND deleted_at IS NULL AND (name LIKE ?1 $_e OR summary LIKE ?1 $_e OR body_md LIKE ?1 $_e
+          OR EXISTS (SELECT 1 FROM project_genres pg JOIN genres g ON g.id = pg.genre_id WHERE pg.project_id = p.id AND g.name LIKE ?1 $_e))
         ORDER BY (name LIKE ?1 $_e) DESC, updated_at DESC LIMIT 20''', [like, userId]);
     return {'characters': characters, 'worlds': worlds, 'projects': projects};
   }

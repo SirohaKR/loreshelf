@@ -53,7 +53,6 @@ export const app = {
     try {
       const h = await api.get('/api/home');
       $('[data-cnt=characters]').textContent = h.counts.characters;
-      $('[data-cnt=worlds]').textContent = h.counts.worlds;
       $('[data-cnt=projects]').textContent = h.counts.projects;
     } catch {
       /* 숫자는 못 읽어도 화면은 그대로 */
@@ -83,14 +82,12 @@ darkQuery.addEventListener('change', applyTheme);
 const NAV = [
   ['/', '⌂', '홈'],
   ['/characters', '☺', '캐릭터', 'characters'],
-  ['/worlds', '◎', '세계관', 'worlds'],
   ['/projects', '▣', '프로젝트', 'projects'],
 ];
 
 function newMenuItems() {
   return [
     { label: '☺ 새 캐릭터', onClick: () => app.navigate('/characters/new') },
-    { label: '◎ 새 세계관', onClick: () => app.navigate('/worlds/new') },
     { label: '▣ 새 프로젝트', onClick: () => app.navigate('/projects/new') },
   ];
 }
@@ -138,7 +135,6 @@ function renderShell() {
   $('[data-new-m]').onclick = () => openSheet(newMenuItems());
   $('[data-more]').onclick = () =>
     openSheet([
-      { label: '◎ 세계관', onClick: () => app.navigate('/worlds') },
       { label: '🗑 휴지통', onClick: () => app.navigate('/trash') },
       { label: '⚙ 설정', onClick: () => app.navigate('/settings') },
     ]);

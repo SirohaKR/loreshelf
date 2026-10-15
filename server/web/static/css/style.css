@@ -276,3 +276,15 @@ input[type=color] { width: 44px; height: 38px; border: 1px solid var(--line); bo
 
 /* 검색칸 안의 입력칸은 테두리 없이 (위의 공통 입력칸 스타일보다 뒤에 와야 함) */
 .search input[type=search], .search input[type=search]:focus { border: 0; outline: none; background: transparent; padding: 9px 0; border-radius: 0; }
+
+/* 장르·세계관 태그 */
+.chip.genre { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.modal.wide { width: min(720px, 100%); }
+.genre-cats { display: grid; gap: 14px; max-height: min(52vh, 460px); overflow: auto; padding-right: 4px; }
+.genre-cat h4 { margin: 0 0 6px; font-size: 12px; color: var(--muted); font-weight: 700; }
+.chip.pick { font-size: 13px; padding: 5px 12px; cursor: pointer; font-family: inherit; }
+.chip.pick:hover { border-color: var(--accent); }
+.chip.pick.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 700; }
+.chip.pick [data-del] { opacity: .6; margin-left: 2px; }
+.chip.pick [data-del]:hover { opacity: 1; }
+.genre-field { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
