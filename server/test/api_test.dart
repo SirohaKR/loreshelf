@@ -278,4 +278,143 @@ void main() {
       expect(status, 415);
     });
   });
+
+  group('이미지·프롬프트 (2단계)', () {
+    setUp(setup);
+
+    const sample = '1girl, lia bellot, silver hair, silver armor, smile, <lora:liaBellot_v2:0.8>\n'
+        'Negative prompt: lowres, bad hands\n'
+        'Steps: 28, Sampler: Euler a, CFG scale: 6, Seed: 2984471023, Size: 832x1216, Model: illustriousXL_v01';
+
+    test('자동 분류 + 내 사전 학습', () async {
+      var p = await c.ok('POST', '/api/gen/parse', {'text': sample});
+      expect(p['platform'], 'Stable Diffusion WebUI');
+      expect(p['categories']['etc'], [{'tag': 'lia bellot', 'weight': 1.0}]);
+      expect(p['loras'], [{'name': 'liaBellot_v2', 'weight': 0.8}]);
+      expect(p['settings']['Seed'], '2984471023');
+
+      final rule = await c.ok('POST', '/api/gen/tag-rules', {'tag': 'Lia_Bellot', 'category': 'character'});
+      expect(rule['tag'], 'lia bellot');
+      p = await c.ok('POST', '/api/gen/parse', {'text': sample});
+      expect(p['categories']['etc'], isNull);
+      expect((p['categories']['character'] as List).map((t) => t['tag']), contains('lia bellot'));
+      // 같은 태그를 다시 옮기면 카테고리만 바뀐다
+      await c.ok('POST', '/api/gen/tag-rules', {'tag': 'lia bellot', 'category': 'etc'});
+      expect((await c.ok('GET', '/api/gen/tag-rules') as List).length, 1);
+      expect((await c.call('POST', '/api/gen/tag-rules', {'tag': 'x', 'category': 'weird'})).$1, 400);
+      await c.ok('DELETE', '/api/gen/tag-rules/${rule['id']}');
+      expect(await c.ok('GET', '/api/gen/tag-rules'), isEmpty);
+    });
+
+    test('플랫폼(기본 4개)·모델·LoRA 목록', () async {
+      final platforms = await c.ok('GET', '/api/gen/platforms') as List;
+      expect(platforms.map((p) => p['name']), ['NovelAI', 'Stable Diffusion WebUI', 'ComfyUI', 'Midjourney']);
+      final sd = platforms[1];
+      final m = await c.ok('POST', '/api/gen/models', {'gen_platform_id': sd['id'], 'name': 'illustriousXL_v01', 'base_model': 'Illustrious'});
+      expect(m['base_model'], 'Illustrious');
+      expect((await c.ok('GET', '/api/gen/platforms') as List)[1]['models'].length, 1);
+      await c.ok('PATCH', '/api/gen/platforms/${sd['id']}', {'name': 'Forge'});
+      expect((await c.call('PATCH', '/api/gen/platforms/${sd['id']}', {'name': 'NovelAI'})).$1, 409);
+
+      final l = await c.ok('POST', '/api/gen/loras', {'name': 'liaBellot_v2', 'trigger_words': 'lia bellot', 'default_weight': 0.8});
+      expect(l['default_weight'], 0.8);
+      expect((await c.call('POST', '/api/gen/loras', {'name': 'LIABELLOT_V2'})).$1, 409);
+      expect((await c.call('PATCH', '/api/gen/loras/${l['id']}', {'default_weight': 99})).$1, 400);
+      await c.ok('PATCH', '/api/gen/loras/${l['id']}', {'note': '캐릭터 LoRA'});
+      expect((await c.ok('GET', '/api/gen/loras') as List).single['note'], '캐릭터 LoRA');
+    });
+
+    test('고정 프롬프트(의상 프리셋)', () async {
+      final ch = await c.ok('POST', '/api/characters', {'name': '리아'});
+      final lora = await c.ok('POST', '/api/gen/loras', {'name': 'liaBellot_v2', 'default_weight': 0.8});
+      final preset = await c.ok('POST', '/api/characters/${ch['id']}/gen-presets', {
+        'name': '전투복',
+        'tags': {
+          'character': [{'tag': 'silver hair', 'weight': 1.2}],
+          'outfit': [{'tag': 'silver armor'}],
+          'weird': ['oops'],
+        },
+        'negative': 'lowres, bad hands',
+        'loras': [{'name': 'liaBellot_v2'}],
+      });
+      expect(preset['tags']['character'], [{'tag': 'silver hair', 'weight': 1.2}]);
+      expect(preset['tags']['outfit'], [{'tag': 'silver armor', 'weight': 1.0}]);
+      expect(preset['tags']['etc'], [{'tag': 'oops', 'weight': 1.0}]);
+      expect(preset['negative'], ['lowres', 'bad hands']);
+      expect(preset['loras'].single['gen_lora_id'], lora['id']);
+      expect(preset['loras'].single['weight'], 0.8);
+
+      expect((await c.call('POST', '/api/characters/${ch['id']}/gen-presets', {'name': '평상복', 'loras': [{'name': '없는것'}]})).$1, 400);
+      await c.ok('PATCH', '/api/gen/presets/${preset['id']}', {'name': '전투복 v2', 'loras': []});
+      final list = await c.ok('GET', '/api/characters/${ch['id']}/gen-presets') as List;
+      expect(list.single['name'], '전투복 v2');
+      expect(list.single['loras'], isEmpty);
+      expect(list.single['tags']['outfit'], isNotEmpty); // 안 보낸 칸은 그대로
+      await c.ok('DELETE', '/api/gen/presets/${preset['id']}');
+      expect(await c.ok('GET', '/api/characters/${ch['id']}/gen-presets'), isEmpty);
+    });
+
+    test('PNG 생성 정보 읽기 → 생성 기록 (플랫폼·모델 자동 추가, ★대표는 하나)', () async {
+      final ch = await c.ok('POST', '/api/characters', {'name': '리아'});
+      final image = img.Image(width: 4, height: 4)..textData = {'parameters': sample};
+      final asset = await c.ok('POST', '/api/assets', img.encodePng(image), {'x-file-name': 'gen.png'});
+      final read = await c.ok('GET', '/api/gen/png-info/${asset['id']}');
+      final info = read['info'];
+      expect(info['platform'], 'Stable Diffusion WebUI');
+      expect([info['seed'], info['steps'], info['cfg_scale'], info['width'], info['height']], [2984471023, 28, 6.0, 832, 1216]);
+      expect(info['model'], 'illustriousXL_v01');
+
+      final plain = await c.ok('POST', '/api/assets', _png(5, 5), {'x-file-name': 'plain.png'});
+      expect((await c.ok('GET', '/api/gen/png-info/${plain['id']}'))['info'], isNull);
+
+      final lora = await c.ok('POST', '/api/gen/loras', {'name': 'liaBellot_v2'});
+      final rec = await c.ok('POST', '/api/characters/${ch['id']}/gen-records', {
+        'asset_id': asset['id'],
+        'platform': info['platform'],
+        'model': info['model'],
+        'prompt_raw': info['prompt_raw'],
+        'tags': info['parsed']['categories'],
+        'negative': info['parsed']['negative'],
+        'loras': [...(info['parsed']['loras'] as List), {'name': 'unknownLora', 'weight': 0.5}],
+        'seed': info['seed'], 'steps': info['steps'], 'cfg_scale': info['cfg_scale'], 'sampler': info['sampler'],
+        'width': info['width'], 'height': info['height'],
+        'extra': info['extra'],
+        'is_cover': true,
+      });
+      expect(rec['platform_name'], 'Stable Diffusion WebUI');
+      expect(rec['model_name'], 'illustriousXL_v01');
+      expect(rec['seed'], 2984471023);
+      expect(rec['loras'], [
+        {'gen_lora_id': lora['id'], 'name': 'liaBellot_v2', 'weight': 0.8},
+        {'gen_lora_id': null, 'name': 'unknownLora', 'weight': 0.5},
+      ]);
+      expect(rec['is_cover'], 1);
+      final platforms = await c.ok('GET', '/api/gen/platforms') as List;
+      expect(platforms.where((p) => p['name'] == 'Stable Diffusion WebUI').single['models'].single['name'], 'illustriousXL_v01');
+
+      final second = await c.ok('POST', '/api/characters/${ch['id']}/gen-records', {'title': '두 번째', 'is_cover': 1});
+      final list = await c.ok('GET', '/api/characters/${ch['id']}/gen-records') as List;
+      expect(list.map((r) => [r['id'], r['is_cover']]), [[second['id'], 1], [rec['id'], 0]]);
+
+      expect((await c.call('PATCH', '/api/gen/records/${rec['id']}', {'seed': 'abc'})).$1, 400);
+      expect((await c.call('PATCH', '/api/gen/records/${rec['id']}', {'model': 'x', 'gen_platform_id': null})).$1, 400);
+      final edited = await c.ok('PATCH', '/api/gen/records/${rec['id']}', {'note': '손이 잘 나옴', 'loras': []});
+      expect(edited['note'], '손이 잘 나옴');
+      expect(edited['loras'], isEmpty);
+      expect(edited['seed'], 2984471023);
+
+      await c.ok('DELETE', '/api/gen/records/${rec['id']}');
+      expect((await c.call('GET', '/api/gen/records/${rec['id']}')).$1, 404);
+    });
+
+    test('다른 캐릭터의 프리셋은 못 씀, 휴지통의 캐릭터는 못 봄', () async {
+      final a = await c.ok('POST', '/api/characters', {'name': 'A'});
+      final b = await c.ok('POST', '/api/characters', {'name': 'B'});
+      final preset = await c.ok('POST', '/api/characters/${a['id']}/gen-presets', {'name': '기본'});
+      expect((await c.call('POST', '/api/characters/${b['id']}/gen-records', {'gen_preset_id': preset['id']})).$1, 400);
+      await c.ok('DELETE', '/api/characters/${a['id']}');
+      expect((await c.call('GET', '/api/characters/${a['id']}/gen-presets')).$1, 404);
+      expect((await c.call('PATCH', '/api/gen/presets/${preset['id']}', {'name': 'x'})).$1, 404);
+    });
+  });
 }
