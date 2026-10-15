@@ -11,6 +11,8 @@ import '../../auth/domain/user.dart';
 import '../../characters/presentation/character_list_page.dart';
 import '../../home/presentation/home_page.dart';
 import '../../projects/presentation/project_list_page.dart';
+import '../../search/presentation/search_page.dart';
+import '../../trash/presentation/trash_page.dart';
 import 'widgets/shell_actions.dart';
 
 class ShellPage extends HookWidget {
@@ -36,7 +38,12 @@ class ShellPage extends HookWidget {
         const ProjectListPage(),
       ],
     );
-    final actions = [const ThemeToggleButton(), LogoutButton(displayName: user.displayName)];
+    final actions = [
+      IconButton(tooltip: '검색', icon: const Icon(Icons.search), onPressed: () => SearchPage.open(context)),
+      IconButton(tooltip: '휴지통', icon: const Icon(Icons.delete_outline), onPressed: () => TrashPage.open(context)),
+      const ThemeToggleButton(),
+      LogoutButton(displayName: user.displayName),
+    ];
 
     return DoubleBackToExit(
       child: LayoutBuilder(

@@ -15,6 +15,10 @@ import 'package:loreshelf_app/features/projects/domain/genre.dart';
 import 'package:loreshelf_app/features/projects/domain/project.dart';
 import 'package:loreshelf_app/features/projects/domain/project_draft.dart';
 import 'package:loreshelf_app/features/projects/domain/projects_repository.dart';
+import 'package:loreshelf_app/features/search/domain/search_repository.dart';
+import 'package:loreshelf_app/features/search/domain/search_result.dart';
+import 'package:loreshelf_app/features/trash/domain/trash_entry.dart';
+import 'package:loreshelf_app/features/trash/domain/trash_repository.dart';
 
 const me = User(id: 1, loginName: 'dev', displayName: '주인장');
 const lia = CharacterSummary(id: 1, name: '리아 벨로트', tagline: '몰락한 왕가의 마지막 기사', themeColor: '#C9573F', projectId: 1);
@@ -70,7 +74,11 @@ class FakeProjectsRepository implements ProjectsRepository {
   Future<List<ProjectSummary>> fetchList() async => [crown];
 
   @override
-  Future<ProjectDetail> fetchDetail(int id) async => ProjectDetail(id: id, name: crown.name, genres: crown.genres);
+  Future<ProjectDetail> fetchDetail(int id) async =>
+      ProjectDetail(id: id, name: crown.name, genres: crown.genres, characters: linkedByProject[id] ?? const []);
+
+  /// project id → 연결한(서재) 캐릭터들 (연결·끊기 흐름 테스트용)
+  final linkedByProject = <int, List<CharacterSummary>>{};
 
   final genres = [
     const Genre(id: 1, category: 'genre', name: '로맨스 판타지'),
@@ -100,6 +108,25 @@ class FakeProjectsRepository implements ProjectsRepository {
 
   @override
   Future<int> uploadImage(Uint8List bytes, String fileName) async => 88;
+
+  @override
+  Future<ProjectDetail> linkCharacter(int projectId, int characterId, {String? role}) async {
+    final list = linkedByProject.putIfAbsent(projectId, () => []);
+    list.removeWhere((c) => c.id == characterId);
+    list.add(CharacterSummary(id: characterId, name: characterId == mir.id ? mir.name : '캐릭터$characterId', membership: 'linked', role: role));
+    return fetchDetail(projectId);
+  }
+
+  @override
+  Future<ProjectDetail> unlinkCharacter(int projectId, int characterId) async {
+    linkedByProject[projectId]?.removeWhere((c) => c.id == characterId);
+    return fetchDetail(projectId);
+  }
+
+  final deleted = <int>[];
+
+  @override
+  Future<void> delete(int id) async => deleted.add(id);
 }
 
 /// 어떤 조건으로 불렸는지 기록해 둔다
@@ -169,4 +196,31 @@ class FakeCharactersRepository implements CharactersRepository {
 
   @override
   Future<void> delete(int id) async => calls.add('delete $id');
+}
+
+class FakeTrashRepository implements TrashRepository {
+  FakeTrashRepository({this.lists = const TrashLists()});
+  TrashLists lists;
+  final calls = <String>[];
+
+  @override
+  Future<TrashLists> fetchAll() async => lists;
+
+  @override
+  Future<void> restore(TrashKind kind, int id) async => calls.add('restore ${kind.path} $id');
+
+  @override
+  Future<void> purge(TrashKind kind, int id) async => calls.add('purge ${kind.path} $id');
+}
+
+class FakeSearchRepository implements SearchRepository {
+  FakeSearchRepository({this.results = const SearchResults()});
+  SearchResults results;
+  final asked = <String>[];
+
+  @override
+  Future<SearchResults> search(String query) async {
+    asked.add(query);
+    return query.trim().isEmpty ? const SearchResults() : results;
+  }
 }

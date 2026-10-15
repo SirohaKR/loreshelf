@@ -85,6 +85,54 @@ final class ProjectEditInitialFamily extends $Family
   String toString() => r'projectEditInitialProvider';
 }
 
+/// 서재에서 연결 창이 보여줄 공용 서재 캐릭터 목록
+
+@ProviderFor(libraryCharactersForLinking)
+final libraryCharactersForLinkingProvider =
+    LibraryCharactersForLinkingProvider._();
+
+/// 서재에서 연결 창이 보여줄 공용 서재 캐릭터 목록
+
+final class LibraryCharactersForLinkingProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<CharacterSummary>>,
+          List<CharacterSummary>,
+          FutureOr<List<CharacterSummary>>
+        >
+    with
+        $FutureModifier<List<CharacterSummary>>,
+        $FutureProvider<List<CharacterSummary>> {
+  /// 서재에서 연결 창이 보여줄 공용 서재 캐릭터 목록
+  LibraryCharactersForLinkingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'libraryCharactersForLinkingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$libraryCharactersForLinkingHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<CharacterSummary>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<CharacterSummary>> create(Ref ref) {
+    return libraryCharactersForLinking(ref);
+  }
+}
+
+String _$libraryCharactersForLinkingHash() =>
+    r'ff96dae493c9e5c40e47082faf8a280cb52bf54a';
+
 /// 장르·세계관 태그 전체 — 태그 고르기 창이 쓴다
 
 @ProviderFor(genreList)
@@ -172,3 +220,49 @@ abstract class _$ProjectSaver extends $AsyncNotifier<ProjectDetail?> {
     return element.handleCreate(ref, build);
   }
 }
+
+/// 서재 캐릭터 연결/끊기 — 누르면 바로 하는 일 (CharacterActions와 같은 짜임)
+
+@ProviderFor(projectActions)
+final projectActionsProvider = ProjectActionsProvider._();
+
+/// 서재 캐릭터 연결/끊기 — 누르면 바로 하는 일 (CharacterActions와 같은 짜임)
+
+final class ProjectActionsProvider
+    extends $FunctionalProvider<ProjectActions, ProjectActions, ProjectActions>
+    with $Provider<ProjectActions> {
+  /// 서재 캐릭터 연결/끊기 — 누르면 바로 하는 일 (CharacterActions와 같은 짜임)
+  ProjectActionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'projectActionsProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$projectActionsHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProjectActions> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ProjectActions create(Ref ref) {
+    return projectActions(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProjectActions value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProjectActions>(value),
+    );
+  }
+}
+
+String _$projectActionsHash() => r'c00c1ac031e2b995070e453638e1c81132395d7f';

@@ -14,6 +14,9 @@ import 'package:loreshelf_app/features/characters/domain/character_scope.dart';
 import 'package:loreshelf_app/features/home/data/home_repository_impl.dart';
 import 'package:loreshelf_app/features/projects/data/projects_repository_impl.dart';
 import 'package:loreshelf_app/features/projects/domain/project_draft.dart';
+import 'package:loreshelf_app/features/search/data/search_repository_impl.dart';
+import 'package:loreshelf_app/features/trash/data/trash_repository_impl.dart';
+import 'package:loreshelf_app/features/trash/domain/trash_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -146,5 +149,50 @@ void main() {
       await api.delete('/api/projects/${made.id}');
       await repo.deleteGenre(custom.id);
     }
+  }, skip: skip);
+
+  test('프로젝트에 서재 캐릭터 연결 → 끊기, 휴지통 되살리기·영구 삭제, 검색', () async {
+    final (api, _) = await login();
+    final projectsRepo = ProjectsRepositoryImpl(api);
+    final charactersRepo = CharactersRepositoryImpl(api);
+    final trashRepo = TrashRepositoryImpl(api);
+    final searchRepo = SearchRepositoryImpl(api);
+
+    final project = await projectsRepo.save(null, const ProjectDraft(name: '앱 테스트 연결용 프로젝트'));
+    final character = await charactersRepo.save(null, CharacterDraft.empty().copyWith(name: '앱 테스트 서재 캐릭터'));
+    try {
+      // 연결 — 역할을 붙이고, 역할만 다시 바꿔도(같은 캐릭터) upsert
+      var linked = await projectsRepo.linkCharacter(project.id, character.id, role: '조언자');
+      expect(linked.characters.single.role, '조언자');
+      expect(linked.characters.single.membership, 'linked');
+      linked = await projectsRepo.linkCharacter(project.id, character.id, role: '현자');
+      expect(linked.characters.single.role, '현자');
+
+      // 검색 — 이름으로 찾아진다 (project_name은 '전용' 캐릭터일 때만 붙음 — 연결은 project_id를 안 바꾼다)
+      final found = await searchRepo.search('앱 테스트 서재 캐릭터');
+      expect(found.characters.single.id, character.id);
+      expect(found.characters.single.projectName, isNull);
+
+      // 끊기 — 캐릭터는 서재에 남는다
+      final unlinked = await projectsRepo.unlinkCharacter(project.id, character.id);
+      expect(unlinked.characters, isEmpty);
+      expect((await charactersRepo.fetchDetail(character.id)).projectId, isNull);
+
+      // 휴지통 — 프로젝트를 지우면 목록에 뜨고, 되살리면 다시 안 보인다
+      await api.delete('/api/projects/${project.id}');
+      var trash = await trashRepo.fetchAll();
+      final trashed = trash.projects.firstWhere((p) => p.id == project.id);
+      expect(trashed.name, project.name);
+      await trashRepo.restore(TrashKind.projects, project.id);
+      trash = await trashRepo.fetchAll();
+      expect(trash.projects.any((p) => p.id == project.id), isFalse);
+      expect((await projectsRepo.fetchDetail(project.id)).name, project.name); // 되살아나서 다시 읽힌다
+    } finally {
+      await api.delete('/api/characters/${character.id}');
+      await trashRepo.purge(TrashKind.characters, character.id);
+      await api.delete('/api/projects/${project.id}');
+      await trashRepo.purge(TrashKind.projects, project.id);
+    }
+    await expectLater(projectsRepo.fetchDetail(project.id), throwsA(isA<ApiException>()));
   }, skip: skip);
 }

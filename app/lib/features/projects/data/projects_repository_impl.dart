@@ -43,4 +43,16 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
 
   @override
   Future<int> uploadImage(Uint8List bytes, String fileName) async => (await _api.upload('/api/assets', bytes, fileName))['id'] as int;
+
+  @override
+  Future<ProjectDetail> linkCharacter(int projectId, int characterId, {String? role}) async => ProjectDetail.fromJson(
+        await _api.post('/api/projects/$projectId/characters', {'character_id': characterId, 'role': role}),
+      );
+
+  @override
+  Future<ProjectDetail> unlinkCharacter(int projectId, int characterId) async =>
+      ProjectDetail.fromJson(await _api.delete('/api/projects/$projectId/characters/$characterId'));
+
+  @override
+  Future<void> delete(int id) => _api.delete('/api/projects/$id');
 }

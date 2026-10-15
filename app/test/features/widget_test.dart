@@ -12,11 +12,19 @@ import 'package:loreshelf_app/features/characters/data/characters_repository_imp
 import 'package:loreshelf_app/features/characters/domain/character_scope.dart';
 import 'package:loreshelf_app/features/home/data/home_repository_impl.dart';
 import 'package:loreshelf_app/features/projects/data/projects_repository_impl.dart';
+import 'package:loreshelf_app/features/search/data/search_repository_impl.dart';
+import 'package:loreshelf_app/features/trash/data/trash_repository_impl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
 
-Future<List<Override>> fakeOverrides({User? user, FakeCharactersRepository? characters, FakeProjectsRepository? projects}) async {
+Future<List<Override>> fakeOverrides({
+  User? user,
+  FakeCharactersRepository? characters,
+  FakeProjectsRepository? projects,
+  FakeTrashRepository? trash,
+  FakeSearchRepository? search,
+}) async {
   SharedPreferences.setMockInitialValues({});
   return [
     sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
@@ -24,6 +32,8 @@ Future<List<Override>> fakeOverrides({User? user, FakeCharactersRepository? char
     homeRepositoryProvider.overrideWithValue(FakeHomeRepository()),
     projectsRepositoryProvider.overrideWithValue(projects ?? FakeProjectsRepository()),
     charactersRepositoryProvider.overrideWithValue(characters ?? FakeCharactersRepository()),
+    trashRepositoryProvider.overrideWithValue(trash ?? FakeTrashRepository()),
+    searchRepositoryProvider.overrideWithValue(search ?? FakeSearchRepository()),
   ];
 }
 
