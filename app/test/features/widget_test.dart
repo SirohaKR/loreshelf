@@ -16,13 +16,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
 
-Future<List<Override>> fakeOverrides({User? user, FakeCharactersRepository? characters}) async {
+Future<List<Override>> fakeOverrides({User? user, FakeCharactersRepository? characters, FakeProjectsRepository? projects}) async {
   SharedPreferences.setMockInitialValues({});
   return [
     sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
     authRepositoryProvider.overrideWithValue(FakeAuthRepository(user: user)),
     homeRepositoryProvider.overrideWithValue(FakeHomeRepository()),
-    projectsRepositoryProvider.overrideWithValue(FakeProjectsRepository()),
+    projectsRepositoryProvider.overrideWithValue(projects ?? FakeProjectsRepository()),
     charactersRepositoryProvider.overrideWithValue(characters ?? FakeCharactersRepository()),
   ];
 }

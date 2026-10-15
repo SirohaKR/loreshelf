@@ -10,6 +10,7 @@ import '../../../core/widgets/markdown_text.dart';
 import '../../../core/widgets/section_card.dart';
 import '../../characters/presentation/widgets/character_card.dart';
 import 'project_detail_provider.dart';
+import 'project_edit_page.dart';
 import 'widgets/genre_groups.dart';
 import 'widgets/project_header.dart';
 
@@ -24,7 +25,13 @@ class ProjectDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(projectDetailProvider(id));
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.name ?? '프로젝트')),
+      appBar: AppBar(
+        title: Text(detail.value?.name ?? '프로젝트'),
+        actions: [
+          if (detail.value != null)
+            IconButton(tooltip: '편집', icon: const Icon(Icons.edit_outlined), onPressed: () => ProjectEditPage.open(context, id: id)),
+        ],
+      ),
       body: AsyncValueView(
         value: detail,
         onRetry: () => ref.invalidate(projectDetailProvider(id)),

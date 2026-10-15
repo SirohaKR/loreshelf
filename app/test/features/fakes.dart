@@ -13,6 +13,7 @@ import 'package:loreshelf_app/features/home/domain/home_repository.dart';
 import 'package:loreshelf_app/features/home/domain/home_summary.dart';
 import 'package:loreshelf_app/features/projects/domain/genre.dart';
 import 'package:loreshelf_app/features/projects/domain/project.dart';
+import 'package:loreshelf_app/features/projects/domain/project_draft.dart';
 import 'package:loreshelf_app/features/projects/domain/projects_repository.dart';
 
 const me = User(id: 1, loginName: 'dev', displayName: '주인장');
@@ -70,6 +71,35 @@ class FakeProjectsRepository implements ProjectsRepository {
 
   @override
   Future<ProjectDetail> fetchDetail(int id) async => ProjectDetail(id: id, name: crown.name, genres: crown.genres);
+
+  final genres = [
+    const Genre(id: 1, category: 'genre', name: '로맨스 판타지'),
+    const Genre(id: 2, category: 'setting', name: '학원'),
+    const Genre(id: 3, category: 'mood', name: '복수'),
+  ];
+  final saved = <Map<String, Object?>>[];
+
+  @override
+  Future<ProjectDetail> save(int? id, ProjectDraft draft) async {
+    saved.add(draft.toPayload());
+    return ProjectDetail(id: id ?? 50, name: draft.name, genres: draft.genres);
+  }
+
+  @override
+  Future<List<Genre>> fetchGenres() async => genres;
+
+  @override
+  Future<Genre> addGenre(String name) async {
+    final g = Genre(id: 90 + genres.length, category: 'custom', name: name, isCustom: true);
+    genres.add(g);
+    return g;
+  }
+
+  @override
+  Future<void> deleteGenre(int id) async => genres.removeWhere((g) => g.id == id);
+
+  @override
+  Future<int> uploadImage(Uint8List bytes, String fileName) async => 88;
 }
 
 /// 어떤 조건으로 불렸는지 기록해 둔다

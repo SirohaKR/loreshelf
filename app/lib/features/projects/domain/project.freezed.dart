@@ -321,7 +321,7 @@ as List<Genre>,
 /// @nodoc
 mixin _$ProjectDetail {
 
- int get id; String get name; String get kind; String? get summary; String? get bodyMd; String? get worldName; int? get coverAssetId; int get progressPercent; String get visibility; String? get updatedAt; List<Genre> get genres; List<CharacterSummary> get characters;
+ int get id; String get name; String get kind; String? get summary; String? get bodyMd; int? get worldId; String? get worldName; int get sortOrder; int? get coverAssetId; int get progressPercent; String get visibility; String? get updatedAt; List<Genre> get genres; List<CharacterSummary> get characters;
 /// Create a copy of ProjectDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -334,16 +334,16 @@ $ProjectDetailCopyWith<ProjectDetail> get copyWith => _$ProjectDetailCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.coverAssetId, coverAssetId) || other.coverAssetId == coverAssetId)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.genres, genres)&&const DeepCollectionEquality().equals(other.characters, characters));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.worldId, worldId) || other.worldId == worldId)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.coverAssetId, coverAssetId) || other.coverAssetId == coverAssetId)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.genres, genres)&&const DeepCollectionEquality().equals(other.characters, characters));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,kind,summary,bodyMd,worldName,coverAssetId,progressPercent,visibility,updatedAt,const DeepCollectionEquality().hash(genres),const DeepCollectionEquality().hash(characters));
+int get hashCode => Object.hash(runtimeType,id,name,kind,summary,bodyMd,worldId,worldName,sortOrder,coverAssetId,progressPercent,visibility,updatedAt,const DeepCollectionEquality().hash(genres),const DeepCollectionEquality().hash(characters));
 
 @override
 String toString() {
-  return 'ProjectDetail(id: $id, name: $name, kind: $kind, summary: $summary, bodyMd: $bodyMd, worldName: $worldName, coverAssetId: $coverAssetId, progressPercent: $progressPercent, visibility: $visibility, updatedAt: $updatedAt, genres: $genres, characters: $characters)';
+  return 'ProjectDetail(id: $id, name: $name, kind: $kind, summary: $summary, bodyMd: $bodyMd, worldId: $worldId, worldName: $worldName, sortOrder: $sortOrder, coverAssetId: $coverAssetId, progressPercent: $progressPercent, visibility: $visibility, updatedAt: $updatedAt, genres: $genres, characters: $characters)';
 }
 
 
@@ -354,7 +354,7 @@ abstract mixin class $ProjectDetailCopyWith<$Res>  {
   factory $ProjectDetailCopyWith(ProjectDetail value, $Res Function(ProjectDetail) _then) = _$ProjectDetailCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, String kind, String? summary, String? bodyMd, String? worldName, int? coverAssetId, int progressPercent, String visibility, String? updatedAt, List<Genre> genres, List<CharacterSummary> characters
+ int id, String name, String kind, String? summary, String? bodyMd, int? worldId, String? worldName, int sortOrder, int? coverAssetId, int progressPercent, String visibility, String? updatedAt, List<Genre> genres, List<CharacterSummary> characters
 });
 
 
@@ -371,15 +371,17 @@ class _$ProjectDetailCopyWithImpl<$Res>
 
 /// Create a copy of ProjectDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? summary = freezed,Object? bodyMd = freezed,Object? worldName = freezed,Object? coverAssetId = freezed,Object? progressPercent = null,Object? visibility = null,Object? updatedAt = freezed,Object? genres = null,Object? characters = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? summary = freezed,Object? bodyMd = freezed,Object? worldId = freezed,Object? worldName = freezed,Object? sortOrder = null,Object? coverAssetId = freezed,Object? progressPercent = null,Object? visibility = null,Object? updatedAt = freezed,Object? genres = null,Object? characters = null,}) {
   return _then(ProjectDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as String,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String?,bodyMd: freezed == bodyMd ? _self.bodyMd : bodyMd // ignore: cast_nullable_to_non_nullable
-as String?,worldName: freezed == worldName ? _self.worldName : worldName // ignore: cast_nullable_to_non_nullable
-as String?,coverAssetId: freezed == coverAssetId ? _self.coverAssetId : coverAssetId // ignore: cast_nullable_to_non_nullable
+as String?,worldId: freezed == worldId ? _self.worldId : worldId // ignore: cast_nullable_to_non_nullable
+as int?,worldName: freezed == worldName ? _self.worldName : worldName // ignore: cast_nullable_to_non_nullable
+as String?,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,coverAssetId: freezed == coverAssetId ? _self.coverAssetId : coverAssetId // ignore: cast_nullable_to_non_nullable
 as int?,progressPercent: null == progressPercent ? _self.progressPercent : progressPercent // ignore: cast_nullable_to_non_nullable
 as int,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -470,10 +472,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String kind,  String? summary,  String? bodyMd,  String? worldName,  int? coverAssetId,  int progressPercent,  String visibility,  String? updatedAt,  List<Genre> genres,  List<CharacterSummary> characters)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  String kind,  String? summary,  String? bodyMd,  int? worldId,  String? worldName,  int sortOrder,  int? coverAssetId,  int progressPercent,  String visibility,  String? updatedAt,  List<Genre> genres,  List<CharacterSummary> characters)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProjectDetail() when $default != null:
-return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.worldName,_that.coverAssetId,_that.progressPercent,_that.visibility,_that.updatedAt,_that.genres,_that.characters);case _:
+return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.worldId,_that.worldName,_that.sortOrder,_that.coverAssetId,_that.progressPercent,_that.visibility,_that.updatedAt,_that.genres,_that.characters);case _:
   return orElse();
 
 }
@@ -491,10 +493,10 @@ return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String kind,  String? summary,  String? bodyMd,  String? worldName,  int? coverAssetId,  int progressPercent,  String visibility,  String? updatedAt,  List<Genre> genres,  List<CharacterSummary> characters)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  String kind,  String? summary,  String? bodyMd,  int? worldId,  String? worldName,  int sortOrder,  int? coverAssetId,  int progressPercent,  String visibility,  String? updatedAt,  List<Genre> genres,  List<CharacterSummary> characters)  $default,) {final _that = this;
 switch (_that) {
 case _ProjectDetail():
-return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.worldName,_that.coverAssetId,_that.progressPercent,_that.visibility,_that.updatedAt,_that.genres,_that.characters);case _:
+return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.worldId,_that.worldName,_that.sortOrder,_that.coverAssetId,_that.progressPercent,_that.visibility,_that.updatedAt,_that.genres,_that.characters);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -511,10 +513,10 @@ return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String kind,  String? summary,  String? bodyMd,  String? worldName,  int? coverAssetId,  int progressPercent,  String visibility,  String? updatedAt,  List<Genre> genres,  List<CharacterSummary> characters)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  String kind,  String? summary,  String? bodyMd,  int? worldId,  String? worldName,  int sortOrder,  int? coverAssetId,  int progressPercent,  String visibility,  String? updatedAt,  List<Genre> genres,  List<CharacterSummary> characters)?  $default,) {final _that = this;
 switch (_that) {
 case _ProjectDetail() when $default != null:
-return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.worldName,_that.coverAssetId,_that.progressPercent,_that.visibility,_that.updatedAt,_that.genres,_that.characters);case _:
+return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.worldId,_that.worldName,_that.sortOrder,_that.coverAssetId,_that.progressPercent,_that.visibility,_that.updatedAt,_that.genres,_that.characters);case _:
   return null;
 
 }
@@ -526,7 +528,7 @@ return $default(_that.id,_that.name,_that.kind,_that.summary,_that.bodyMd,_that.
 @JsonSerializable()
 
 class _ProjectDetail extends ProjectDetail {
-  const _ProjectDetail({required this.id, required this.name, this.kind = 'etc', this.summary, this.bodyMd, this.worldName, this.coverAssetId, this.progressPercent = 0, this.visibility = 'private', this.updatedAt,  List<Genre> genres = const [],  List<CharacterSummary> characters = const []}): _genres = genres,_characters = characters,super._();
+  const _ProjectDetail({required this.id, required this.name, this.kind = 'etc', this.summary, this.bodyMd, this.worldId, this.worldName, this.sortOrder = 0, this.coverAssetId, this.progressPercent = 0, this.visibility = 'private', this.updatedAt,  List<Genre> genres = const [],  List<CharacterSummary> characters = const []}): _genres = genres,_characters = characters,super._();
   factory _ProjectDetail.fromJson(Map<String, dynamic> json) => _$ProjectDetailFromJson(json);
 
 @override final  int id;
@@ -534,7 +536,9 @@ class _ProjectDetail extends ProjectDetail {
 @override@JsonKey() final  String kind;
 @override final  String? summary;
 @override final  String? bodyMd;
+@override final  int? worldId;
 @override final  String? worldName;
+@override@JsonKey() final  int sortOrder;
 @override final  int? coverAssetId;
 @override@JsonKey() final  int progressPercent;
 @override@JsonKey() final  String visibility;
@@ -567,16 +571,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.coverAssetId, coverAssetId) || other.coverAssetId == coverAssetId)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._genres, _genres)&&const DeepCollectionEquality().equals(other._characters, _characters));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.summary, summary) || other.summary == summary)&&(identical(other.bodyMd, bodyMd) || other.bodyMd == bodyMd)&&(identical(other.worldId, worldId) || other.worldId == worldId)&&(identical(other.worldName, worldName) || other.worldName == worldName)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.coverAssetId, coverAssetId) || other.coverAssetId == coverAssetId)&&(identical(other.progressPercent, progressPercent) || other.progressPercent == progressPercent)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._genres, _genres)&&const DeepCollectionEquality().equals(other._characters, _characters));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,kind,summary,bodyMd,worldName,coverAssetId,progressPercent,visibility,updatedAt,const DeepCollectionEquality().hash(_genres),const DeepCollectionEquality().hash(_characters));
+int get hashCode => Object.hash(runtimeType,id,name,kind,summary,bodyMd,worldId,worldName,sortOrder,coverAssetId,progressPercent,visibility,updatedAt,const DeepCollectionEquality().hash(_genres),const DeepCollectionEquality().hash(_characters));
 
 @override
 String toString() {
-  return 'ProjectDetail(id: $id, name: $name, kind: $kind, summary: $summary, bodyMd: $bodyMd, worldName: $worldName, coverAssetId: $coverAssetId, progressPercent: $progressPercent, visibility: $visibility, updatedAt: $updatedAt, genres: $genres, characters: $characters)';
+  return 'ProjectDetail(id: $id, name: $name, kind: $kind, summary: $summary, bodyMd: $bodyMd, worldId: $worldId, worldName: $worldName, sortOrder: $sortOrder, coverAssetId: $coverAssetId, progressPercent: $progressPercent, visibility: $visibility, updatedAt: $updatedAt, genres: $genres, characters: $characters)';
 }
 
 
@@ -587,7 +591,7 @@ abstract mixin class _$ProjectDetailCopyWith<$Res> implements $ProjectDetailCopy
   factory _$ProjectDetailCopyWith(_ProjectDetail value, $Res Function(_ProjectDetail) _then) = __$ProjectDetailCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, String kind, String? summary, String? bodyMd, String? worldName, int? coverAssetId, int progressPercent, String visibility, String? updatedAt, List<Genre> genres, List<CharacterSummary> characters
+ int id, String name, String kind, String? summary, String? bodyMd, int? worldId, String? worldName, int sortOrder, int? coverAssetId, int progressPercent, String visibility, String? updatedAt, List<Genre> genres, List<CharacterSummary> characters
 });
 
 
@@ -604,15 +608,17 @@ class __$ProjectDetailCopyWithImpl<$Res>
 
 /// Create a copy of ProjectDetail
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? summary = freezed,Object? bodyMd = freezed,Object? worldName = freezed,Object? coverAssetId = freezed,Object? progressPercent = null,Object? visibility = null,Object? updatedAt = freezed,Object? genres = null,Object? characters = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? kind = null,Object? summary = freezed,Object? bodyMd = freezed,Object? worldId = freezed,Object? worldName = freezed,Object? sortOrder = null,Object? coverAssetId = freezed,Object? progressPercent = null,Object? visibility = null,Object? updatedAt = freezed,Object? genres = null,Object? characters = null,}) {
   return _then(_ProjectDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as String,summary: freezed == summary ? _self.summary : summary // ignore: cast_nullable_to_non_nullable
 as String?,bodyMd: freezed == bodyMd ? _self.bodyMd : bodyMd // ignore: cast_nullable_to_non_nullable
-as String?,worldName: freezed == worldName ? _self.worldName : worldName // ignore: cast_nullable_to_non_nullable
-as String?,coverAssetId: freezed == coverAssetId ? _self.coverAssetId : coverAssetId // ignore: cast_nullable_to_non_nullable
+as String?,worldId: freezed == worldId ? _self.worldId : worldId // ignore: cast_nullable_to_non_nullable
+as int?,worldName: freezed == worldName ? _self.worldName : worldName // ignore: cast_nullable_to_non_nullable
+as String?,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,coverAssetId: freezed == coverAssetId ? _self.coverAssetId : coverAssetId // ignore: cast_nullable_to_non_nullable
 as int?,progressPercent: null == progressPercent ? _self.progressPercent : progressPercent // ignore: cast_nullable_to_non_nullable
 as int,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

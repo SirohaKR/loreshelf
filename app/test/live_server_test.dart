@@ -13,6 +13,7 @@ import 'package:loreshelf_app/features/characters/domain/character_draft.dart';
 import 'package:loreshelf_app/features/characters/domain/character_scope.dart';
 import 'package:loreshelf_app/features/home/data/home_repository_impl.dart';
 import 'package:loreshelf_app/features/projects/data/projects_repository_impl.dart';
+import 'package:loreshelf_app/features/projects/domain/project_draft.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -126,5 +127,24 @@ void main() {
       }
     }
     await expectLater(repo.fetchDetail(made.id), throwsA(isA<ApiException>()));
+  }, skip: skip);
+
+  test('프로젝트 만들기 → 태그 직접 추가 → 고치기 → 휴지통', () async {
+    final (api, _) = await login();
+    final repo = ProjectsRepositoryImpl(api);
+    final genres = await repo.fetchGenres();
+    final custom = await repo.addGenre('앱테스트태그');
+    final made = await repo.save(null, ProjectDraft(name: '앱 테스트 프로젝트', kind: 'chatbot', genres: [genres.first, custom]));
+    try {
+      expect(made.genres.map((g) => g.id), [genres.first.id, custom.id]);
+      final again = await repo.save(made.id, ProjectDraft.fromDetail(made).copyWith(progressPercent: 35, genres: [custom]));
+      expect(again.progressPercent, 35);
+      expect(again.kind, 'chatbot');
+      expect(again.genres.single.name, '앱테스트태그');
+      expect((await repo.fetchGenres()).firstWhere((g) => g.id == custom.id).isCustom, isTrue);
+    } finally {
+      await api.delete('/api/projects/${made.id}');
+      await repo.deleteGenre(custom.id);
+    }
   }, skip: skip);
 }

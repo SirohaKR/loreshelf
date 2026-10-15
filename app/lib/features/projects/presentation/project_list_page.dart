@@ -7,6 +7,8 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/app_error_toast.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/empty_note.dart';
+import 'project_detail_page.dart';
+import 'project_edit_page.dart';
 import 'project_list_provider.dart';
 import 'widgets/project_card.dart';
 
@@ -20,9 +22,21 @@ class ProjectListPage extends ConsumerWidget {
       onRefresh: () => refreshOrToast(context, () => ref.refresh(projectListProvider.future)),
       child: CustomScrollView(
         slivers: [
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.page, AppSpacing.page, 18),
-            sliver: SliverToBoxAdapter(child: Text('프로젝트', style: AppTextStyles.pageTitle)),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(AppSpacing.page, AppSpacing.page, AppSpacing.page, 18),
+            sliver: SliverToBoxAdapter(
+              child: Wrap(spacing: 12, runSpacing: 12, crossAxisAlignment: WrapCrossAlignment.end, children: [
+                const Text('프로젝트', style: AppTextStyles.pageTitle),
+                FilledButton.icon(
+                  onPressed: () async {
+                    final made = await ProjectEditPage.open(context);
+                    if (made != null && context.mounted) await ProjectDetailPage.open(context, made.id);
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('새 프로젝트'),
+                ),
+              ]),
+            ),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(AppSpacing.page, 0, AppSpacing.page, AppSpacing.page),
