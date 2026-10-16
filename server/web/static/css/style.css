@@ -320,6 +320,9 @@ input[type=color] { width: 44px; height: 38px; border: 1px solid var(--line); bo
 .tgl a:first-child { border-radius: 6px 0 0 6px; }
 .tgl a:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
 .tgl a.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.def-add { display: flex; gap: 6px; align-items: center; margin-top: 10px; }
+.def-add select { width: auto; flex: none; }
+.def-add input { flex: 1; min-width: 0; }
 .negsets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0 2px; font-size: 12px; }
 .split-box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
 .split-box h3 { font-size: 13px; margin: 0 0 6px; }

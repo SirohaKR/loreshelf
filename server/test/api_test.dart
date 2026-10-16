@@ -318,6 +318,18 @@ void main() {
       await c.ok('DELETE', '/api/gen/tag-rules/${b['id']}');
     });
 
+    test('공통 기본값(품질·네거티브): 처음엔 기본, 고치면 settings에 저장', () async {
+      var d = await c.ok('GET', '/api/gen/defaults');
+      expect(d['quality'], contains('masterpiece'));
+      expect(d['negative'], contains('lowres'));
+      d = await c.ok('PUT', '/api/gen/defaults', {'negative': 'lowres, bad hands'});
+      expect(d['negative'], ['lowres', 'bad hands']);
+      expect(d['quality'], contains('masterpiece')); // 안 보낸 쪽은 그대로
+      d = await c.ok('PUT', '/api/gen/defaults', {'quality': []});
+      expect(d['quality'], isEmpty); // 비워 둘 수도 있다
+      expect((await c.ok('GET', '/api/settings'))['gen_default_negative'], '["lowres","bad hands"]');
+    });
+
     test('네거티브 세트: 기본 5개 + 내가 만든 세트 만들기·고치기·지우기', () async {
       var sets = await c.ok('GET', '/api/gen/negative-sets') as List;
       expect(sets.where((s) => s['builtin'] == true).map((s) => s['name']), ['품질', '손·해부학', '글자·워터마크', '얼굴', '기타']);

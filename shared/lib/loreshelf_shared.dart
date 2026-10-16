@@ -3,4 +3,5 @@ library;
 
 export 'src/negative_sets.dart';
 export 'src/png_info.dart';
+export 'src/prompt_defaults.dart';
 export 'src/prompt_parser.dart';

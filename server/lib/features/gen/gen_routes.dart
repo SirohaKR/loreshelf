@@ -15,6 +15,7 @@ import '../../core/http.dart';
 import '../../core/owned.dart';
 import '../assets/assets_repository.dart';
 import '../assets/assets_service.dart';
+import '../settings/settings_repository.dart';
 import 'gen_catalog_repository.dart';
 import 'gen_records_repository.dart';
 
@@ -22,6 +23,7 @@ class GenRoutes {
   final Db db;
   final GenCatalogRepository catalog;
   final GenNegativeSetsRepository negativeSets;
+  final SettingsRepository settings;
   final GenRecordsRepository records;
   final AssetsRepository assets;
   final AssetsService files;
@@ -30,6 +32,7 @@ class GenRoutes {
       : db = app.db,
         catalog = GenCatalogRepository(app.db),
         negativeSets = GenNegativeSetsRepository(app.db),
+        settings = SettingsRepository(app.db),
         records = GenRecordsRepository(app.db),
         assets = AssetsRepository(app.db),
         files = AssetsService(app);
@@ -93,6 +96,18 @@ class GenRoutes {
       catalog.forget(req.ctx.user, pathInt(id));
       return ok();
     });
+    // 모든 캐릭터 공통 기본값 (settings: gen_default_quality, gen_default_negative — JSON 문자열 배열).
+    // 아직 저장한 적이 없으면 shared의 처음 기본값을 돌려준다.
+    r.get('/api/gen/defaults', (Request req) => json(_defaults(req.ctx.user)));
+    r.put('/api/gen/defaults', (Request req) async {
+      final b = await body(req);
+      settings.db.tx(() {
+        if (b.containsKey('quality')) settings.put(req.ctx.user, 'gen_default_quality', _negativeJson(b['quality']));
+        if (b.containsKey('negative')) settings.put(req.ctx.user, 'gen_default_negative', _negativeJson(b['negative']));
+      });
+      return json(_defaults(req.ctx.user));
+    });
+
     // 네거티브 세트: 기본 세트(고칠 수 없음) + 내가 만든 세트
     r.get('/api/gen/negative-sets', (Request req) => json([
           for (final s in defaultNegativeSets) s.toJson(),
@@ -239,6 +254,18 @@ class GenRoutes {
       }
     });
     return jsonEncode({for (final k in promptCategoryKeys) if (out[k] != null) k: out[k]});
+  }
+
+  Map<String, Object?> _defaults(int uid) {
+    List<String> read(String name, List<String> initial) {
+      final v = settings.one(uid, name);
+      return v == null ? initial : [for (final t in jsonDecode(v) as List) '$t'];
+    }
+
+    return {
+      'quality': read('gen_default_quality', initialDefaultQuality),
+      'negative': read('gen_default_negative', initialDefaultNegative),
+    };
   }
 
   Map<String, Object?> _negativeSetJson(Row r) =>

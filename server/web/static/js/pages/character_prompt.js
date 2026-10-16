@@ -157,6 +157,7 @@ export async function renderPromptTab(el, c) {
   let rawText = '';
   let format = 'sd';
   let negSets = [];
+  let defaults = { quality: [], negative: [] }; // 모든 캐릭터 공통 기본값 (GET /api/gen/defaults)
   let dropped = new Set(); // 붙여넣기 결과에서 ✕로 뺀 태그 (글을 고치면 초기화)
   let targets = { ...DEFAULT_TARGET };
   try {
@@ -172,12 +173,35 @@ export async function renderPromptTab(el, c) {
     }
   };
 
+  /** 붙여 넣은 것에서 공통 기본값과 겹치는 태그를 뺀다 (shared stripPromptDefaults와 같은 규칙). removed = 뺀 것 */
+  const stripDefaults = ({ tags = {}, negative = [], loras = [] }) => {
+    const q = new Set(defaults.quality.map(norm));
+    const n = new Set(defaults.negative.map(norm));
+    const removed = [];
+    const out = {};
+    for (const [k, list] of Object.entries(tags)) {
+      const kept = list.filter((t) => !(q.has(norm(t.tag)) && removed.push(t.tag)));
+      if (kept.length) out[k] = kept;
+    }
+    const neg = negative.filter((t) => !(n.has(norm(t)) && removed.push(t)));
+    return { tags: out, negative: neg, loras, removed };
+  };
+  /** 복사할 때: 공통 기본 품질은 품질 칸 앞에, 기본 네거티브는 네거티브 앞에 */
+  const withDefaults = (d) => ({
+    tags: mergeTags(defaults.quality.length ? { quality: defaults.quality.map((tag) => ({ tag, weight: 1 })) } : {}, d.tags),
+    negative: mergeList(mergeList([], defaults.negative), d.negative),
+    loras: d.loras,
+  });
+  const removedNote = (removed) =>
+    removed.length ? html`<div class="sub" style="margin-top:6px" title="${removed.join(', ')}">공통 기본값과 겹쳐서 뺐어요: ${removed.join(', ')}</div>` : '';
+
   const load = async () => {
-    [presets, records, platforms, negSets] = await Promise.all([
+    [presets, records, platforms, negSets, defaults] = await Promise.all([
       api.get(`/api/characters/${c.id}/gen-presets`),
       api.get(`/api/characters/${c.id}/gen-records`),
       api.get('/api/gen/platforms'),
       api.get('/api/gen/negative-sets'),
+      api.get('/api/gen/defaults'),
     ]);
     if (!presets.some((p) => p.id === presetId)) presetId = presets[0]?.id ?? null;
   };
@@ -186,11 +210,13 @@ export async function renderPromptTab(el, c) {
     el.innerHTML = html`<div class="wrap2">
       <div class="grid">
         <div class="card" data-preset-card>${presetCard()}</div>
+        <div class="card" data-def-card>${defaultsCard()}</div>
         <div class="card" data-parse-card>${parseCard()}</div>
       </div>
       <div class="card" data-rec-card>${recordCard()}</div>
     </div>`.s;
     bindPreset();
+    bindDefaults();
     bindParse();
     bindRecords();
   };
@@ -204,7 +230,7 @@ export async function renderPromptTab(el, c) {
       </div>
       ${p
         ? html`${rows(p, { del: true })}
-          ${negSetBar(negSets)}
+          <div class="sub" style="margin-top:8px">전체 복사에는 아래 공통 기본값(품질 ${defaults.quality.length}개 · 네거티브 ${defaults.negative.length}개)이 함께 붙어요.</div>
           <div class="acts">
             <div class="seg"><a class="${format === 'sd' ? 'on' : ''}" data-format="sd">SD 형식</a><a class="${format === 'nai' ? 'on' : ''}" data-format="nai">NovelAI 형식</a></div>
             <span class="menu-wrap"><button class="btn" data-preset-more>⋯</button></span>
@@ -228,14 +254,7 @@ export async function renderPromptTab(el, c) {
       await load();
       draw();
     });
-    bindNegSets(card, async (set) => {
-      const negative = mergeList(p.negative, set.negative);
-      if (negative.length === p.negative.length) return toast('이미 다 들어 있어요');
-      await attempt(() => api.put(`/api/gen/presets/${p.id}`, { negative }), `네거티브 '${set.name}' 세트를 넣었어요`);
-      await load();
-      draw();
-    });
-    $('[data-preset-copy]', card).onclick = () => copy(promptText(p, format), `${format === 'sd' ? 'SD' : 'NovelAI'} 형식으로 복사했어요`);
+    $('[data-preset-copy]', card).onclick = () => copy(promptText(withDefaults(p), format), `${format === 'sd' ? 'SD' : 'NovelAI'} 형식으로 복사했어요`);
     $('[data-preset-edit]', card).onclick = () => editPreset(p);
     $('[data-preset-more]', card).onclick = (e) => {
       e.stopPropagation();
@@ -263,12 +282,15 @@ export async function renderPromptTab(el, c) {
           e.preventDefault();
           const f = formData(e.target);
           try {
-            const r = await api.post('/api/gen/parse', { text: f.text });
+            const parsedText = await api.post('/api/gen/parse', { text: f.text });
+            const r = { ...stripDefaults({ tags: parsedText.categories, negative: parsedText.negative }), loras: parsedText.loras };
+            r.categories = r.tags;
             const known = new Set((await api.get('/api/gen/loras')).map((l) => l.name.toLowerCase()));
             const skipped = r.loras.filter((l) => !known.has(l.name.toLowerCase()));
             const body = { name: f.name, tags: r.categories, negative: r.negative, loras: r.loras.filter((l) => known.has(l.name.toLowerCase())) };
             const out = p ? await api.put(`/api/gen/presets/${p.id}`, body) : await api.post(`/api/characters/${c.id}/gen-presets`, body);
             if (skipped.length) toast(`목록에 없는 LoRA는 빼고 저장했어요: ${skipped.map((l) => l.name).join(', ')}`, 'error');
+            if (r.removed.length) toast(`공통 기본값과 겹치는 ${r.removed.length}개는 빼고 저장했어요`);
             close(out);
           } catch (err) {
             toast(err.message, 'error');
@@ -305,6 +327,44 @@ export async function renderPromptTab(el, c) {
     draw();
   };
 
+  // ───── 모든 캐릭터 공통 기본값 (품질·네거티브) ─────
+  const defaultsCard = () => html`<div class="card-h"><div><h2>모든 캐릭터 공통 기본값</h2>
+      <div class="sub">높은 품질을 위해 늘 넣는 품질 태그·네거티브예요. 복사할 때 자동으로 합쳐지고, 붙여 넣을 때 겹치는 태그는 캐릭터 쪽에서 빠져요.</div></div></div>
+    ${rows({ tags: defaults.quality.length ? { quality: defaults.quality.map((tag) => ({ tag, weight: 1 })) } : {}, negative: defaults.negative }, { del: true })}
+    <form data-def-add class="def-add">
+      <select name="to"><option value="quality">품질에</option><option value="negative">네거티브에</option></select>
+      <input type="text" name="text" maxlength="2000" placeholder="태그 추가 (쉼표로 나눠서)">
+      <button class="btn sm">추가</button>
+    </form>
+    ${negSetBar(negSets)}`;
+
+  const bindDefaults = () => {
+    const card = $('[data-def-card]', el);
+    const save = async (body, done) => {
+      defaults = await attempt(() => api.put('/api/gen/defaults', body), done);
+      draw();
+    };
+    bindRowCopy(card, { tags: { quality: defaults.quality.map((tag) => ({ tag, weight: 1 })) }, negative: defaults.negative });
+    bindChipDelete(card, (k, i) =>
+      k === 'negative'
+        ? save({ negative: defaults.negative.filter((_, j) => j !== i) }, `'${defaults.negative[i]}'을(를) 기본 네거티브에서 뺐어요`)
+        : save({ quality: defaults.quality.filter((_, j) => j !== i) }, `'${defaults.quality[i]}'을(를) 기본 품질에서 뺐어요`),
+    );
+    $('[data-def-add]', card).onsubmit = (e) => {
+      e.preventDefault();
+      const f = formData(e.target);
+      const add = f.text.split(/[,\n]/).map((t) => t.trim()).filter(Boolean);
+      if (!add.length) return;
+      const to = f.to === 'negative' ? 'negative' : 'quality';
+      save({ [to]: mergeList(defaults[to], add) }, to === 'negative' ? '기본 네거티브에 넣었어요' : '기본 품질에 넣었어요');
+    };
+    bindNegSets(card, (set) => {
+      const negative = mergeList(defaults.negative, set.negative);
+      if (negative.length === defaults.negative.length) return toast('이미 다 들어 있어요');
+      save({ negative }, `네거티브 '${set.name}' 세트를 기본값에 넣었어요`);
+    });
+  };
+
   // ───── 붙여넣기 → 자동 분류 ─────
   const parseCard = () => html`<div class="card-h">
       <div><h2>프롬프트 붙여넣기 → 자동 분류</h2><div class="sub">WebUI·Forge 생성 정보 통째로, NovelAI 태그, Midjourney 명령어 모두 돼요</div></div>
@@ -324,10 +384,10 @@ export async function renderPromptTab(el, c) {
 
   const parsedView = () => {
     if (!parsed || !rawText.trim()) return '';
-    const d = current();
+    const d = stripDefaults(current());
     return html`<div class="detect">감지된 플랫폼 <span class="chip a">${parsed.platform || '알 수 없음'}</span> 태그 ${countTags(d.tags)}개 · LoRA ${d.loras.length}개 · 네거티브 ${d.negative.length}개</div>
       <div class="parsed">${rows(d, { movable: true, del: true, targets })}</div>
-      ${negSetBar(negSets)}
+      ${removedNote(d.removed)}
       ${Object.keys(parsed.settings).length ? html`<div class="settings">${Object.entries(parsed.settings).map(([k, v]) => html`<div><small>${k}</small><span title="${v}">${v}</span></div>`)}</div>` : ''}
       <div class="hint">칸 이름 아래에서 <b>고정</b>(캐릭터의 고정 프롬프트)과 <b>이번만</b>(이번 생성 기록)을 골라요. 태그를 누르면 다른 칸으로 옮기거나 지울 수 있고, 옮긴 태그는 내 사전에 기억돼서 다음부터 자동으로 그 칸에 들어가요.</div>
       <div class="acts">
@@ -371,7 +431,7 @@ export async function renderPromptTab(el, c) {
   const bindParsed = () => {
     const box = $('[data-parsed]', el);
     if (!box || !parsed || !rawText.trim()) return;
-    const d = current();
+    const d = stripDefaults(current());
     const drop = (k, i) => {
       dropped.add(k === 'negative' ? `neg:${norm(d.negative[i])}` : norm(d.tags[k][i].tag));
       redrawParsed();
@@ -405,11 +465,6 @@ export async function renderPromptTab(el, c) {
         ]);
       };
     });
-    bindNegSets(box, (set) => {
-      for (const t of set.negative) dropped.delete(`neg:${norm(t)}`);
-      parsed.negative = mergeList(parsed.negative, set.negative);
-      redrawParsed();
-    });
     $('[data-split]', box).onclick = () => splitSave(d);
     $('[data-to-record]', box).onclick = () => saveRecord(null, recordFromParsed(d));
   };
@@ -441,6 +496,7 @@ export async function renderPromptTab(el, c) {
       return html`<div class="split-box"><h3>${p ? `고정 프롬프트 '${p.name}'에 추가돼요` : '새 고정 프롬프트에 들어가요'} · ${n}개</h3>
           ${n ? rows(a) : html`<div class="sub">새로 추가할 태그가 없어요</div>`}
           ${skipped ? html`<div class="sub" style="margin-top:6px">이미 들어 있는 ${skipped}개는 건너뛰어요</div>` : ''}</div>
+        ${removedNote(d.removed)}
         <div class="split-box"><h3>이번 생성 기록에 들어가요 · ${sceneN}개</h3>
           ${sceneN ? rows({ tags: sceneTags, negative: sceneNeg, loras: sceneLoras }) : html`<div class="sub">장면 태그가 없어요</div>`}</div>`;
     };
@@ -649,8 +705,7 @@ export async function renderPromptTab(el, c) {
             platform: info.platform,
             model: info.model,
             prompt_raw: info.prompt_raw,
-            tags: info.parsed.categories,
-            negative: info.parsed.negative,
+            ...(({ tags, negative }) => ({ tags, negative }))(stripDefaults({ tags: info.parsed.categories, negative: info.parsed.negative })),
             loras: info.parsed.loras,
             seed: info.seed,
             steps: info.steps,
@@ -692,8 +747,7 @@ export async function renderPromptTab(el, c) {
         </div>
       </div>
       <div style="margin-top:12px">${rows(r, { del: true })}</div>
-      ${negSetBar(negSets, false)}
-      ${withPreset(r) !== r ? html`<div class="hint">프롬프트를 복사하면 고정 프롬프트 '${r.preset_name}'의 태그가 앞에 합쳐져요 (겹치는 태그는 한 번만).</div>` : ''}
+      <div class="hint">프롬프트를 복사하면 ${withPreset(r) !== r ? `고정 프롬프트 '${r.preset_name}'와 ` : ''}공통 기본값이 앞에 합쳐져요 (겹치는 태그는 한 번만).</div>
       ${r.prompt_raw ? html`<details style="margin-top:10px"><summary class="sub">원문 프롬프트</summary><pre class="raw-pre">${r.prompt_raw}</pre></details>` : ''}
       <div class="acts">
         <button class="btn danger" data-act="del">지우기</button>
@@ -708,10 +762,6 @@ export async function renderPromptTab(el, c) {
           await attempt(() => api.put(`/api/gen/records/${r.id}`, withoutTag(r, k, i)), '태그를 뺐어요');
           close('refresh');
         });
-        bindNegSets(m, async (set) => {
-          await attempt(() => api.put(`/api/gen/records/${r.id}`, { negative: mergeList(r.negative, set.negative) }), `네거티브 '${set.name}' 세트를 넣었어요`);
-          close('refresh');
-        });
         const wf = $('[data-wf]', m);
         if (wf) wf.onclick = () => copy(String(r.extra.workflow), '워크플로 JSON을 복사했어요');
         $$('[data-act]', m).forEach((b) => (b.onclick = () => close(b.dataset.act)));
@@ -723,7 +773,7 @@ export async function renderPromptTab(el, c) {
       const again = records.find((x) => x.id === r.id);
       if (again) openRecord(again);
     }
-    if (act === 'copy') copy(promptText(withPreset(r), 'sd'));
+    if (act === 'copy') copy(promptText(withDefaults(withPreset(r)), 'sd'));
     if (act === 'edit') saveRecord(r, r);
     if (act === 'cover') {
       await attempt(() => api.put(`/api/gen/records/${r.id}`, { is_cover: true }), '대표 이미지로 정했어요');
@@ -775,7 +825,8 @@ export async function renderPromptTab(el, c) {
             delete body.text;
             if (f.text.trim() !== tagsText.trim()) {
               const p = await api.post('/api/gen/parse', { text: f.text });
-              Object.assign(body, { tags: p.categories, negative: p.negative, loras: p.loras });
+              const s = stripDefaults({ tags: p.categories, negative: p.negative });
+              Object.assign(body, { tags: s.tags, negative: s.negative, loras: p.loras });
             } else if (!rec && v.tags) {
               Object.assign(body, { tags: v.tags, negative: v.negative, loras: v.loras });
             }
