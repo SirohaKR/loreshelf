@@ -155,6 +155,7 @@ JSON은 **목록·묶음이라서 테이블로 쪼개면 오히려 불편한 것
 |---|---|---|
 | `gen_presets.tags_json`, `gen_records.tags_json` | `{카테고리: [{tag, weight}]}` — 카테고리 키는 2-5절 값 | `{"character":[{"tag":"silver hair","weight":1.2}],"outfit":[{"tag":"silver armor","weight":1}]}` |
 | `*.negative_json` | 문자열 배열 | `["lowres","bad hands"]` |
+| `settings.value` (이름 `gen_default_quality`, `gen_default_negative`) | 문자열 배열 (JSON 글로 저장) — 모든 캐릭터 공통 기본 품질 태그·네거티브. 행이 없으면 shared의 처음 기본값. 읽고 쓰기는 `/api/gen/defaults`에서만(값 검사 때문에 `/api/settings` 허용 목록엔 안 넣음) | `["masterpiece","best quality"]` |
 | `chatbot_lore_entries.keywords_json` | 문자열 배열 | `["편의점","가게"]` |
 | `character_templates.fields_json` | 칸 이름 배열 | `["나이","생일","키"]` |
 | `gen_records.extra_json` | 자유 객체 (플랫폼별 추가 정보) | `{"--ar":"2:3","workflow_asset_id":12}` |
