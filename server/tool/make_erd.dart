@@ -12,7 +12,8 @@ const _groups = [
   ('세계관 · 프로젝트 · 장르 태그', '#d9822b', ['worlds', 'projects', 'project_characters', 'genres', 'project_genres']),
   ('캐릭터', '#3f5bd8', ['characters', 'character_templates', 'character_fields', 'character_traits', 'character_quotes', 'character_relations', 'character_assets', 'character_tags']),
   ('문서 · 메모 · 연표 · 기록', '#2f9e6b', ['docs', 'memos', 'memo_tags', 'timeline_events', 'timeline_event_characters', 'revisions']),
-  ('챗봇 (chatbot_)', '#d6487a', ['chatbot_versions', 'chatbot_greetings', 'chatbot_lore_entries', 'chatbot_test_messages']),
+  ('챗봇 (chatbot_)', '#d6487a', ['chatbot_stories', 'chatbot_nodes', 'chatbot_node_links', 'chatbot_status_views', 'chatbot_status_view_items', 'chatbot_status_view_drafts', 'chatbot_test_messages']),
+  ('AI 사용 기록 (ai_)', '#4b5563', ['ai_usage_logs']),
   ('이미지 생성 (gen_)', '#7c5cd6', ['gen_presets', 'gen_preset_loras', 'gen_records', 'gen_record_loras', 'gen_platforms', 'gen_models', 'gen_loras', 'gen_tag_rules', 'gen_negative_sets']),
   ('게임 (game_) · 보드 (board_)', '#b5651d', ['game_stats', 'game_stat_values', 'game_skills', 'game_quests', 'board_columns', 'board_cards', 'board_card_tags']),
 ];

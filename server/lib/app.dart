@@ -10,6 +10,7 @@ import 'features/assets/assets_routes.dart';
 import 'features/auth/auth_middleware.dart';
 import 'features/auth/auth_routes.dart';
 import 'features/characters/characters_routes.dart';
+import 'features/chatbot/chatbot_routes.dart';
 import 'features/gen/gen_routes.dart';
 import 'features/genres/genres_routes.dart';
 import 'features/home/home_routes.dart';
@@ -37,6 +38,7 @@ Handler buildApp(AppContext app) {
     ProjectsRoutes(app).register,
     GenresRoutes(app).register,
     CharactersRoutes(app).register,
+    ChatbotRoutes(app).register,
     GenRoutes(app).register,
     TagsRoutes(app).register,
     AssetsRoutes(app).register,

@@ -3,7 +3,7 @@ import 'db.dart';
 import 'http.dart';
 
 /// user_id·deleted_at 칸이 있는 맨 위 단위 테이블만 (주소·요청 값으로 테이블 이름을 받지 않는다).
-const _ownedTables = {'worlds', 'projects', 'characters', 'assets'};
+const _ownedTables = {'worlds', 'projects', 'characters', 'assets', 'chatbot_stories', 'chatbot_status_views'};
 
 /// id가 비었으면 null, 내 것이 아니거나 휴지통에 있으면 오류, 내 것이면 그 id.
 int? ownedIdOrNull(Db db, String table, int userId, Object? id, String label) {

@@ -458,4 +458,67 @@ void main() {
       expect((await c.call('PUT', '/api/gen/presets/${preset['id']}', {'name': 'x'})).$1, 404);
     });
   });
+
+  group('챗봇 설정 (3단계)', () {
+    setUp(setup);
+
+    test('작품 만들기 → 스토리 카드가 같이 생기고, 카드·선을 붙였다 뗀다', () async {
+      final ch = await c.ok('POST', '/api/characters', {'name': '세린'});
+      final story = await c.ok('POST', '/api/chatbot/stories', {'title': '편의점의 밤', 'main_character_id': ch['id']});
+      expect(story['target_platforms'], ['rofan', 'rplay']);
+      expect(story['edit_mode'], 'simple');
+      final storyNode = (story['nodes'] as List).single;
+      expect(storyNode['kind'], 'story');
+      expect(storyNode['content']['start_messages'], isEmpty);
+
+      final person = await c.ok('POST', '/api/chatbot/stories/${story['id']}/nodes', {
+        'kind': 'character',
+        'source_character_id': ch['id'],
+        'content': {'key_info': '{{char}}는 무심하다', 'unknown': 1},
+      });
+      expect(person['title'], '인물'); // 이름을 비우면 종류 이름
+      expect(person['content']['key_info'], '{{char}}는 무심하다');
+      expect((person['content'] as Map).containsKey('unknown'), isFalse);
+
+      final link = await c.ok('POST', '/api/chatbot/stories/${story['id']}/links',
+          {'from_chatbot_node_id': person['id'], 'to_chatbot_node_id': storyNode['id']});
+      final again = await c.ok('POST', '/api/chatbot/stories/${story['id']}/links',
+          {'from_chatbot_node_id': person['id'], 'to_chatbot_node_id': storyNode['id']});
+      expect(again['id'], link['id']); // 이미 이어져 있으면 같은 선
+
+      // 보낸 칸만 바뀐다
+      final moved = await c.ok('PUT', '/api/chatbot/nodes/${person['id']}', {'position_x': 120, 'position_y': 40});
+      expect([moved['position_x'], moved['position_y'], moved['content']['key_info']], [120, 40, '{{char}}는 무심하다']);
+
+      final list = await c.ok('GET', '/api/chatbot/stories?character_id=${ch['id']}') as List;
+      expect([list.single['main_character_name'], list.single['node_count']], ['세린', 2]);
+
+      // 카드를 지우면 선도 사라진다
+      await c.ok('DELETE', '/api/chatbot/nodes/${person['id']}');
+      final detail = await c.ok('GET', '/api/chatbot/stories/${story['id']}');
+      expect([(detail['nodes'] as List).length, detail['links']], [1, isEmpty]);
+
+      await c.ok('DELETE', '/api/chatbot/stories/${story['id']}');
+      expect((await c.call('GET', '/api/chatbot/stories/${story['id']}')).$1, 404);
+      expect((await c.call('PUT', '/api/chatbot/nodes/${storyNode['id']}', {'title': 'x'})).$1, 404);
+    });
+
+    test('잘못된 값은 거부', () async {
+      final story = await c.ok('POST', '/api/chatbot/stories', {'title': '작품'});
+      final sid = story['id'], storyNodeId = (story['nodes'] as List).single['id'];
+      expect((await c.call('POST', '/api/chatbot/stories', {'title': ''})).$1, 400);
+      expect((await c.call('POST', '/api/chatbot/stories', {'title': 'x', 'target_platforms': ['zeta']})).$1, 400);
+      expect((await c.call('POST', '/api/chatbot/stories', {'title': 'x', 'main_character_id': 999})).$1, 404);
+      expect((await c.call('POST', '/api/chatbot/stories/$sid/nodes', {'kind': 'nope'})).$1, 400);
+      expect((await c.call('POST', '/api/chatbot/stories/$sid/nodes', {})).$1, 400);
+      expect((await c.call('POST', '/api/chatbot/stories/$sid/nodes', {'kind': 'macro', 'content': {'duration_turns': 9}})).$1, 400);
+      expect((await c.call('PUT', '/api/chatbot/nodes/$storyNodeId', {'kind': 'hub'})).$1, 400);
+      expect((await c.call('POST', '/api/chatbot/stories/$sid/links', {'from_chatbot_node_id': storyNodeId, 'to_chatbot_node_id': storyNodeId})).$1, 400);
+
+      // 다른 작품의 카드와는 못 잇는다
+      final other = await c.ok('POST', '/api/chatbot/stories', {'title': '다른 작품'});
+      final otherNodeId = (other['nodes'] as List).single['id'];
+      expect((await c.call('POST', '/api/chatbot/stories/$sid/links', {'from_chatbot_node_id': storyNodeId, 'to_chatbot_node_id': otherNodeId})).$1, 404);
+    });
+  });
 }
