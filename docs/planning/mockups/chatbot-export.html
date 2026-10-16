@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 플랫폼 내보내기</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="chatbot-ui.css">
+<style>
+  .ptabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .ptab { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 190px; }
+  .ptab.on { border: 2px solid var(--accent); padding: 9px 13px; }
+  .ptab .lg { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: #fff; }
+  .ptab small { display: block; color: var(--muted); font-size: 11.5px; }
+  .step { font-size: 12px; font-weight: 700; color: var(--muted); margin: 18px 0 8px; display: flex; gap: 8px; align-items: center; }
+  .step:first-child { margin-top: 0; }
+  .step::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .xrow { display: grid; grid-template-columns: 150px minmax(0, 1fr) 120px 84px; gap: 12px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .xrow:last-child { border-bottom: 0; }
+  .xrow .lb b { font-size: 13px; display: block; }
+  .xrow .lb small { color: var(--muted); font-size: 11.5px; }
+  .xrow .val { font-size: 12.5px; line-height: 1.6; background: var(--surface2); border-radius: 9px; padding: 8px 11px; max-height: 66px; overflow: hidden; }
+  .xrow .src { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .xrow .lim { font-size: 12px; text-align: right; }
+  .xrow .btn { width: 100%; text-align: center; padding: 6px 0; }
+  .xrow .btn.done { background: var(--ok-soft); color: var(--ok); border-color: transparent; font-weight: 700; }
+  .xrow.na { opacity: .6; }
+  .xrow.na .val { background: transparent; border: 1px dashed var(--line); }
+  .conv { font-family: 'Consolas', monospace; font-size: 12px; display: grid; grid-template-columns: 1fr 22px 1fr; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .conv span:nth-child(2) { color: var(--muted); text-align: center; }
+  .prog { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .prog .meter { flex: 1; margin: 0; height: 8px; }
+  @media (max-width: 1250px) { .xrow { grid-template-columns: 120px minmax(0, 1fr) 84px; } .xrow .lim { display: none; } }
+  @media (max-width: 760px) {
+    .ptab { min-width: 0; flex: 1; padding: 8px 10px; } .ptab.on { padding: 7px 9px; } .ptab small { display: none; }
+    .xrow { grid-template-columns: minmax(0, 1fr) 70px; gap: 8px; }
+    .xrow .lb { grid-column: 1 / -1; display: flex; gap: 8px; align-items: baseline; }
+  }
+</style>
+</head>
+<body data-nav="캐릭터">
+<div class="app">
+  <main class="main">
+    <div class="head">
+      <div class="m-only icon-btn">←</div>
+      <div>
+        <div class="crumb">새벽 편의점 › 내보내기</div>
+        <h1>플랫폼으로 옮기기</h1>
+      </div>
+      <div class="sp"></div>
+      <span class="chip d-only">제한 기준일 2026-10-16</span>
+      <button class="btn d-only">⇩ 카드 V3 PNG</button>
+    </div>
+
+    <div class="ptabs">
+      <div class="ptab on"><div class="lg" style="background:#8a4fd3">로</div><div><b>로판AI</b><small>칸 12개 · 경고 1</small></div></div>
+      <div class="ptab"><div class="lg" style="background:#e2536e">R</div><div><b>로플챗</b><small>간편 모드 · 초과 1</small></div></div>
+      <div class="ptab"><div class="lg" style="background:#4a5568">{ }</div><div><b>카드 JSON</b><small>V2 · V3</small></div></div>
+    </div>
+
+    <div class="split">
+      <div class="card">
+        <div class="prog" style="margin-bottom:14px"><b>복사 진행</b><div class="meter"><i style="width:42%;background:var(--ok)"></i></div><span>5 / 12칸</span></div>
+
+        <div class="step">1단계 · 기본 설정</div>
+        <div class="xrow"><div class="lb"><b>캐릭터 이름</b><small>필수</small></div><div><div class="val">서하린</div></div><div class="lim cnt">3/15자</div><button class="btn done">✓ 복사함</button></div>
+        <div class="xrow"><div class="lb"><b>한줄 소개</b><small>필수</small></div><div><div class="val">새벽 3시, 단골에게만 다정한 편의점 알바생</div><div class="src">← 인물 '서하린' 한 줄 소개</div></div><div class="lim cnt">24/50자</div><button class="btn done">✓ 복사함</button></div>
+        <div class="xrow"><div class="lb"><b>카테고리</b><small>최대 3개</small></div><div><div class="chips"><span class="chip a">로맨스</span><span class="chip a">현대/일상</span></div><div class="src">← 장르 태그 '로맨스'·'일상' 대응표</div></div><div class="lim cnt">2/3</div><button class="btn">⧉ 보기</button></div>
+
+        <div class="step">2단계 · 상세 설정 — 세부 설정 세 칸 합쳐 6,000자</div>
+        <div class="xrow"><div class="lb"><b>세계관</b><small>스토리 + 유저</small></div><div><div class="val">서울 변두리 24시 편의점 '24/7 하늘점'. 사장은 거의 안 온다. 새벽엔 손님이 드물고… ## <span class="v user">{{user}}</span> 설정: 매일 새벽 3시에 오는 대학원생…</div><div class="src">← 스토리 중요 정보 + 전체 스토리 + 유저 카드</div></div><div class="lim cnt">2,610</div><button class="btn done">✓ 복사함</button></div>
+        <div class="xrow"><div class="lb"><b>캐릭터 소개</b><small>인물 2명</small></div><div><div class="val"><span class="v char">{{char}}</span>(22, 여) — 24시 편의점 새벽 알바… 말투: 반말, 짧은 문장… [편의점 사장] 50대, 가끔 와서 폐기 도시락을 챙겨 감…</div><div class="src">← 인물 중요 정보 + 상세 설명</div></div><div class="lim cnt">2,460</div><button class="btn done">✓ 복사함</button></div>
+        <div class="xrow"><div class="lb"><b>비밀</b></div><div><div class="val">사실 <span class="v user">{{user}}</span>가 오는 시간에 맞춰 근무를 바꿨다.</div></div><div class="lim cnt">540</div><button class="btn">⧉ 복사</button></div>
+        <div class="alert warn" style="margin:8px 0">● <span>세부 설정 <b>5,610 / 6,000자</b> · "예시 대화"를 켜면 한도가 줄어서 넘칠 수 있어요</span><button class="btn">줄여서 넣기</button></div>
+        <div class="xrow"><div class="lb"><b>시작 설정 1</b><small>이름 15 · 시작 상황 1,000</small></div><div><div class="val"><b>기본 설정</b> — <i style="font-style:normal;color:var(--muted)">*삑— 바코드 소리가 울린다.*</i> …또 왔네. 오늘은 컵라면 말고 다른 거 먹어.</div></div><div class="lim cnt">412/1,000</div><button class="btn">⧉ 복사</button></div>
+        <div class="xrow"><div class="lb"><b>트래커</b><small>따로 만들어 연결</small></div><div><div class="val">이름 '편의점 트래커' · 항목 4개(날짜·장소·호감도·기분) · 디자인 HTML</div></div><div class="lim cnt">312/1,000</div><button class="btn">⧉ 3칸</button></div>
+        <div class="xrow na"><div class="lb"><b>매크로 4개</b><small>로판에 없음</small></div><div><div class="val">로어북은 제작 화면에 없어요 → <a style="color:var(--accent)">세계관 끝에 합치기</a> (+620자, 6,000 넘음)</div></div><div class="lim cnt">—</div><button class="btn">건너뛰기</button></div>
+
+        <div class="step">최종 · 마무리 설정</div>
+        <div class="xrow"><div class="lb"><b>제작자 코멘트</b></div><div><div class="val">10/16 업데이트: 비 오는 밤 시작 상황 추가</div><div class="src">← 크리에이터 공지</div></div><div class="lim cnt">24/5,000</div><button class="btn">⧉ 복사</button></div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <h2 style="margin-bottom:10px">표기 바꾸기</h2>
+          <div class="conv"><span class="v char">{{char}}</span><span>→</span><span>로판: 그대로 · 로플: <b class="sub-name">서하린</b></span></div>
+          <div class="conv"><span class="v user">{{user}}</span><span>→</span><span>둘 다 그대로</span></div>
+          <div class="conv"><span class="v var">{{var_호감도}}</span><span>→</span><span>로판: 트래커 <b>{{호감도}}</b> · 로플: 그대로</span></div>
+          <div class="conv"><span>[하린]: "" (subjects…)</span><span>→</span><span>로판: 지움</span></div>
+          <div class="note">로플챗 문서엔 <code>{{char}}</code>가 없어서 이름으로 바꿔 넣어요.</div>
+        </div>
+        <div class="card">
+          <h2 style="margin-bottom:10px">경고</h2>
+          <div class="stack" style="gap:6px">
+            <div class="alert warn">● <span>로판 세부 설정 93% — 여유 390자</span></div>
+            <div class="alert warn">● <span>변수·트리거·업적·프리셋 노트는 로판에 없어요 (트래커로 옮긴 것 제외)</span></div>
+            <div class="alert info">ⓘ <span>넘친 칸을 그대로 복사하면 플랫폼이 <b>말없이 잘라요</b> — 복사 전에 한 번 더 물어봐요</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2 style="margin-bottom:10px">파일로</h2>
+          <div class="stack" style="gap:8px">
+            <button class="btn">⇩ 캐릭터 카드 V3 JSON</button>
+            <button class="btn">⇩ 캐릭터 카드 V2 PNG (대표 이미지)</button>
+            <button class="btn">⧉ 전체를 텍스트 한 덩어리로</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

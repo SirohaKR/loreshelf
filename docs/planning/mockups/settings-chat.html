@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 설정</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="chatbot-ui.css">
+<style>
+  .lay { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; align-items: start; }
+  .menu { padding: 8px; }
+  .menu a { display: block; padding: 9px 12px; border-radius: 9px; font-size: 13.5px; }
+  .menu a.on { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grid2 .field { margin-bottom: 0; }
+  .in { background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px; font-size: 13.5px; }
+  .in.focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); background: var(--surface); }
+  .in.muted { color: var(--muted); }
+  .prov { display: grid; grid-template-columns: 34px 120px minmax(0, 1fr) 150px 70px; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .prov:last-child { border-bottom: 0; }
+  .prov .lg { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; color: #fff; }
+  .usage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .usage div { background: var(--surface2); border-radius: 10px; padding: 10px 12px; font-size: 12px; color: var(--muted); }
+  .usage b { display: block; font-size: 18px; color: var(--text); }
+  .bars { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+  .bars div { display: grid; grid-template-columns: 110px 1fr 70px; gap: 8px; align-items: center; }
+  .bars .meter { margin: 0; height: 8px; }
+  @media (max-width: 1100px) { .lay { grid-template-columns: 1fr; } .menu { display: flex; overflow-x: auto; } .menu a { white-space: nowrap; } }
+  @media (max-width: 760px) {
+    .grid2, .usage { grid-template-columns: 1fr; }
+    .usage { grid-template-columns: 1fr 1fr 1fr; }
+    .prov { grid-template-columns: 34px minmax(0, 1fr) 64px; }
+    .prov .key, .prov .model { grid-column: 2 / -1; }
+  }
+</style>
+</head>
+<body data-nav="설정">
+<div class="app">
+  <main class="main">
+    <div class="head"><h1>설정</h1></div>
+    <div class="lay">
+      <div class="card menu"><a class="on">내 정보</a><a>AI 연결</a><a>공통 기본값</a><a>화면</a><a>백업</a></div>
+      <div class="stack">
+        <div class="card">
+          <h2 style="margin-bottom:14px">내 정보</h2>
+          <div class="grid2">
+            <div class="field"><div class="f-head"><b>계정 이름</b><span class="hint">블로그·화면에 보이는 이름</span></div><div class="in">주인장</div></div>
+            <div class="field"><div class="f-head"><b>로그인 아이디</b></div><div class="in muted">owner</div></div>
+          </div>
+          <div class="field">
+            <div class="f-head"><b>대화용 별명</b><span class="chip a">새 칸</span><span class="hint">챗봇 미리보기에서 <span class="v user">{{user}}</span> 자리에 들어가요</span><span class="sp"></span><span class="cnt">3/20자</span></div>
+            <div class="in focus">단골손님<span style="color:var(--accent)">|</span></div>
+            <div class="note">비우면 계정 이름(주인장)을 써요. 플랫폼으로 내보낼 땐 <span class="v user">{{user}}</span> 그대로 나가요 — 이 이름은 내 화면에서만 써요.</div>
+          </div>
+          <div class="chatbox" style="margin-top:4px">
+            <div class="bubble"><div class="who"><span class="sub-name">서하린</span><span class="chip" style="font-size:10px">미리보기</span></div>…또 왔네, <span class="me-name">단골손님</span>. 오늘은 컵라면 말고 다른 거 먹어.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><h2>AI 연결</h2><span class="chip">키는 서버에만 저장 · 화면엔 가려서</span></div>
+          <div class="prov"><div class="lg" style="background:#c96442">A</div><div><b>Anthropic</b><div class="sub" style="margin:0">Claude · 기본</div></div><div class="key in muted">sk-ant-…·····ab12 &nbsp;<span class="chip ok">연결됨</span></div><div class="model in">Sonnet 5.5</div><button class="btn">바꾸기</button></div>
+          <div class="prov"><div class="lg" style="background:#1f2937">O</div><div><b>OpenAI</b><div class="sub" style="margin:0">선택</div></div><div class="key in muted">키 없음</div><div class="model in muted">—</div><button class="btn">+ 키</button></div>
+          <div class="prov"><div class="lg" style="background:#3b7be0">G</div><div><b>Google</b><div class="sub" style="margin:0">Gemini · 선택</div></div><div class="key in muted">키 없음</div><div class="model in muted">—</div><button class="btn">+ 키</button></div>
+          <div class="field" style="margin-top:12px"><div class="f-head"><b>기능별 모델</b></div>
+            <div class="chips"><span class="chip a">상태창 만들기 · Claude Sonnet 5.5</span><span class="chip">넘친 칸 요약 · Claude Haiku 5.5</span><span class="chip">프롬프트 분류 · Claude Haiku 5.5</span></div></div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><h2>이번 달 사용량</h2><span class="sp" style="flex:1"></span><span class="cnt">10/1 ~ 10/31</span></div>
+          <div class="usage" style="margin-bottom:12px">
+            <div><b>1,240원</b>사용</div>
+            <div><b>5,000원</b>월 상한 <a style="color:var(--accent)">바꾸기</a></div>
+            <div><b style="color:var(--ok)">25%</b>80%에서 알림 · 100%면 AI 버튼 꺼짐</div>
+          </div>
+          <div class="bars">
+            <div><span>상태창 만들기</span><div class="meter"><i style="width:62%;background:var(--accent)"></i></div><span>770원</span></div>
+            <div><span>미리보기 대화</span><div class="meter"><i style="width:30%;background:var(--rose)"></i></div><span>380원</span></div>
+            <div><span>요약·분류</span><div class="meter"><i style="width:7%;background:var(--ok)"></i></div><span>90원</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoreShelf · 챗봇 로드맵</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="chatbot-ui.css">
+<style>
+  .story { border: 2px solid var(--accent); padding: 16px 18px; }
+  .story-top { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .story-top .sp { flex: 1; }
+  .sfields { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .sf { background: var(--surface2); border-radius: 10px; padding: 9px 10px; font-size: 12px; min-width: 0; }
+  .sf b { display: block; font-size: 12.5px; margin-bottom: 2px; }
+  .sf .cnt { display: block; }
+  .sf.empty { border: 1px dashed var(--line); background: transparent; color: var(--muted); }
+  .sf.na { opacity: .55; }
+  .spine { width: 2px; height: 18px; background: var(--line); margin: 0 auto; }
+  .lanes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; position: relative; padding-top: 14px; border-top: 2px solid var(--line); }
+  .lane { padding: 12px 14px; position: relative; }
+  .lane::before { content: ""; position: absolute; top: -16px; left: 50%; width: 2px; height: 14px; background: var(--line); }
+  .lane-h { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .lane-h b { font-size: 13.5px; }
+  .lane-h .sp { flex: 1; }
+  .node { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 6px; font-size: 12.5px; background: var(--surface); }
+  .node:last-child { margin-bottom: 0; }
+  .node .pt { width: 28px; height: 28px; border-radius: 50%; font-size: 10px; flex: none; }
+  .node .pt::before, .node .pt::after { display: none; }
+  .node .nm { flex: 1; min-width: 0; }
+  .node .nm small { display: block; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .node.add { border-style: dashed; color: var(--muted); justify-content: center; }
+  .imgs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+  .imgs .pt { aspect-ratio: 1; border-radius: 8px; }
+  .plat-note { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .palette { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .palette .btn { display: inline-flex; gap: 6px; align-items: center; padding: 5px 10px 5px 6px; font-size: 12px; }
+  .palette .kd { width: 20px; height: 20px; font-size: 11px; border-radius: 6px; }
+  .sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .sum div { background: var(--surface2); border-radius: 10px; padding: 8px 10px; font-size: 12px; }
+  .sum b { display: block; font-size: 16px; }
+  @media (max-width: 1400px) { .sfields { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 1100px) { .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 760px) {
+    .sfields { grid-template-columns: 1fr 1fr; }
+    .lanes { grid-template-columns: 1fr; border-top: 0; padding-top: 0; border-left: 2px solid var(--line); margin-left: 12px; padding-left: 12px; }
+    .lane::before { top: 22px; left: -14px; width: 12px; height: 2px; }
+    .spine { margin-left: 12px; }
+  }
+</style>
+</head>
+<body data-nav="캐릭터">
+<div class="app">
+  <main class="main">
+    <div class="head">
+      <div class="m-only icon-btn">←</div>
+      <div class="pt c6">하린</div>
+      <div>
+        <div class="crumb">서하린 › 챗봇 설정</div>
+        <h1>새벽 편의점 <span class="chip a" style="vertical-align:middle">작품 1/2</span></h1>
+      </div>
+      <div class="sp"></div>
+      <div class="seg"><a class="on">간편 (카드)</a><a>캔버스</a></div>
+      <button class="btn d-only">⇩ 내보내기</button>
+      <button class="btn pri">저장</button>
+    </div>
+
+    <div class="split">
+      <div class="stack">
+        <div class="card palette">
+          <span class="hint" style="font-size:12px;color:var(--muted);margin-right:4px">카드 붙이기</span>
+          <button class="btn"><span class="kd k-char">☺</span>인물</button>
+          <button class="btn"><span class="kd k-char">+</span>기타 인물</button>
+          <button class="btn"><span class="kd k-user">나</span>유저</button>
+          <button class="btn"><span class="kd k-img">▦</span>이미지</button>
+          <button class="btn"><span class="kd k-macro">#</span>매크로</button>
+          <button class="btn"><span class="kd k-preset">◐</span>프리셋 노트</button>
+          <button class="btn"><span class="kd k-var">x</span>변수</button>
+          <button class="btn"><span class="kd k-rule">↻</span>업데이트 규칙</button>
+          <button class="btn"><span class="kd k-trig">⚡</span>트리거</button>
+          <button class="btn"><span class="kd k-status">▤</span>상태창</button>
+          <button class="btn"><span class="kd k-ach">★</span>업적</button>
+        </div>
+
+        <div class="card story">
+          <div class="story-top">
+            <span class="kd k-story">S</span>
+            <div><b style="font-size:15px">스토리 · 새벽 편의점</b><div class="sub" style="margin-top:0">모든 카드는 여기에 이어져야 내보내져요</div></div>
+            <div class="sp"></div>
+            <span class="chip ok">시작 노드</span>
+            <button class="btn">✎ 편집</button>
+          </div>
+          <div class="sfields">
+            <div class="sf"><b>중요 정보</b>매 턴 전달<span class="cnt">로플 ≈1,180/2,000토큰</span></div>
+            <div class="sf"><b>전체 스토리</b>세계관·장소<span class="cnt warn">로판 세부 설정 5,610/6,000자</span></div>
+            <div class="sf"><b>시작 메시지 2개</b>기본 · 비 오는 밤<span class="cnt">412/1,000</span></div>
+            <div class="sf empty"><b>시작 가이드</b>비어 있음 · 로플 캔버스만</div>
+            <div class="sf"><b>크리에이터 공지</b>업데이트 안내<span class="cnt">120/500자</span></div>
+          </div>
+        </div>
+
+        <div class="spine"></div>
+        <div class="lanes">
+          <div class="card lane">
+            <div class="lane-h"><span class="kd k-char">☺</span><b>인물</b><span class="chip">2</span><span class="sp"></span><span class="chip rose">프로필 바뀜</span></div>
+            <div class="node"><div class="pt c6">하린</div><div class="nm"><b>서하린</b> <span class="v char">{{char}}</span><small>중요 정보 284/300 · 상세 설명 1,920자</small></div></div>
+            <div class="node"><div class="pt c2">사장</div><div class="nm"><b>편의점 사장</b><small>조연 · 중요 정보 96/300</small></div></div>
+            <div class="node"><span class="kd k-char" style="width:28px;height:28px;border-radius:50%;font-size:11px">+3</span><div class="nm"><b>기타 인물 3명</b><small>단골 고등학생 · 택배 기사 · 옆 가게 사장 · 즉흥 등장 켜짐</small></div></div>
+            <div class="node add">+ 서재에서 캐릭터 불러오기</div>
+          </div>
+          <div class="card lane">
+            <div class="lane-h"><span class="kd k-user">나</span><b>유저</b><span class="sp"></span></div>
+            <div class="node"><span class="kd k-user" style="width:28px;height:28px;border-radius:50%">나</span><div class="nm"><b>단골손님</b> <span class="v user">{{user}}</span><small>매일 새벽 3시에 오는 대학원생</small></div></div>
+            <div class="plat-note"><span class="chip">로판: 세계관에 단락으로</span><span class="chip">로플 간편: 중요 정보로</span></div>
+          </div>
+          <div class="card lane">
+            <div class="lane-h"><span class="kd k-img">▦</span><b>이미지</b><span class="chip">6</span><span class="sp"></span><span class="hint" style="font-size:11px;color:var(--muted)">감정 4 · 상황 2</span></div>
+            <div class="imgs"><div class="pt c6"></div><div class="pt c6"></div><div class="pt c3"></div><div class="pt c6"></div><div class="pt c7"></div><div class="pt c8"></div></div>
+            <div class="plat-note"><span class="chip">무표정</span><span class="chip">웃음</span><span class="chip">당황</span><span class="chip">졸림</span><span class="chip">#계산대</span></div>
+          </div>
+          <div class="card lane">
+            <div class="lane-h"><span class="kd k-macro">#</span><b>매크로 프롬프트</b><span class="chip">4</span><span class="sp"></span></div>
+            <div class="node"><div class="nm"><b>고양이 '두부'</b><small>낱말: 고양이, 두부 · 우선순위 3 · 2턴</small></div><span class="cnt">188/300</span></div>
+            <div class="node"><div class="nm"><b>시험 기간</b><small>낱말: 시험, 과제 · 우선순위 2</small></div><span class="cnt">142/300</span></div>
+            <div class="node"><div class="nm"><b>전 남친 이야기</b><small>트리거로 켜짐 · 호감도 ≥ 4</small></div><span class="cnt">260/300</span></div>
+          </div>
+          <div class="card lane">
+            <div class="lane-h"><span class="kd k-var">x</span><b>변수 · 규칙 · 트리거</b><span class="sp"></span><span class="chip">로플 캔버스</span></div>
+            <div class="node"><span class="v var">{{var_호감도}}</span><div class="nm"><small>숫자 · 0~5</small></div><span class="kd k-rule" style="width:22px;height:22px;font-size:11px">↻</span></div>
+            <div class="node"><div class="nm"><b>규칙: 친절하면 +1</b><small><span class="v var">{{var_호감도}}</span> 이용 · 212/400</small></div></div>
+            <div class="node"><div class="nm"><b>트리거: 호감도 ≥ 4</b><small>→ 매크로 '전 남친 이야기' 켜기</small></div><span class="kd k-trig" style="width:22px;height:22px;font-size:11px">⚡</span></div>
+          </div>
+          <div class="card lane">
+            <div class="lane-h"><span class="kd k-status">▤</span><b>상태창</b><span class="sp"></span><span class="chip a">따로 관리</span></div>
+            <div class="tracker" style="padding:10px 12px;font-size:12px">
+              <div class="tr-top"><span>10-16 · 03:12</span><span>24/7 하늘점</span></div>
+              <div class="tr-row"><span>호감도</span><span class="hearts">♥♥♥<s>♥♥</s></span></div>
+              <div class="tr-row"><span>기분</span><span>😪 졸림</span></div>
+            </div>
+            <div class="plat-note"><span class="chip">로판 트래커로</span><span class="chip">로플 상태창으로 변환</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="lane-h" style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><span class="kd k-preset">◐</span><b>프리셋 노트</b><span class="chip">2</span><span style="flex:1"></span><span class="kd k-ach">★</span><b>업적</b><span class="chip">2</span></div>
+          <div class="chips"><span class="chip">🎬 시트콤 톤</span><span class="chip">🌧 우울한 새벽</span><span class="chip">★ 첫 삼각김밥</span><span class="chip">★ ??? (히든)</span></div>
+        </div>
+      </div>
+
+      <div class="card pv">
+        <div class="pv-head"><b>한눈에 보기</b><span class="sp"></span><div class="seg"><a class="on">로판AI</a><a>로플챗</a></div></div>
+        <div class="pv-sec">
+          <h4>내보내기 준비</h4>
+          <div class="sum"><div><b>18</b>채운 칸</div><div><b style="color:var(--warn)">2</b>경고</div><div><b style="color:var(--rose)">1</b>초과</div></div>
+        </div>
+        <div class="pv-sec">
+          <h4>로판 세부 설정 6,000자 <span class="cnt warn">5,610</span></h4>
+          <div class="meter" style="height:10px"><i style="width:38%;background:#3f5bd8"></i><i style="width:41%;background:var(--rose)"></i><i style="width:9%;background:var(--warn)"></i><i style="width:5.5%;background:var(--ok)"></i></div>
+          <div class="legend" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:8px">
+            <span>■ 세계관 2,280</span><span style="color:var(--rose)">■ 캐릭터 소개 2,460</span><span style="color:var(--warn)">■ 비밀 540</span><span style="color:var(--ok)">■ 유저 330</span>
+          </div>
+        </div>
+        <div class="pv-sec">
+          <h4>알림</h4>
+          <div class="stack" style="gap:6px">
+            <div class="alert over">▲ <span><b>인물 '서하린' 중요 정보</b> — 로플 300토큰 넘음(≈ 318)</span></div>
+            <div class="alert warn">● <span>변수·트리거는 <b>로판에 없어요</b> → 트래커 항목으로 옮김</span></div>
+            <div class="alert warn">● <span>프로필의 성격 축이 바뀌었어요 · 다시 채우기</span></div>
+          </div>
+        </div>
+        <div class="pv-sec">
+          <h4><span>시작 메시지 · <span class="me-name">주인장</span>으로 보기</span></h4>
+          <div class="chatbox"><div class="bubble"><i>*삑— 바코드 소리.*</i> …또 왔네, <span class="me-name">주인장</span>. 오늘은 컵라면 말고 다른 거 먹어.</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="shell.js"></script>
+</body>
+</html>
