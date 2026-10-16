@@ -1,12 +1,14 @@
 // 챗봇 카드 편집 — 칸별 입력, 글자 수(로판·로플 두 기준), {{char}}·{{user}}·{{var_이름}} 칩 버튼과 색칠, 잘못된 표기 고치기.
 // 입력하면 잠깐 뒤 저장(자동 저장), Ctrl+S 나 저장 버튼으로 바로 저장.
-// 기획: docs/planning/챗봇-설정-기획서.md 2-1(입력 규칙)
+// 오른쪽(휴대폰은 아래) "저장 후 미리보기"는 저장된 내용으로 {{char}}·{{user}}를 바꿔 보여 준다. "프로필에서 채우기"는 chatbot_profile.js.
+// 기획: docs/planning/챗봇-설정-기획서.md 2-1(입력 규칙) · 2-2(미리보기) · 2-3(프로필에서 채우기)
 import { api, assetUrl } from '../api.js';
-import { $, $$, attempt, confirmDialog, html, openMenu, render as put, toast } from '../ui.js';
+import { $, $$, attempt, confirmDialog, html, openMenu, raw, render as put, toast } from '../ui.js';
 import { KIND_ICON, KIND_TONE } from './chatbot.js';
 import {
-  PLATFORM_NAME, ROFAN_DETAIL, fieldChecks, findNotations, fixNotations, formFor, highlightHtml, loadMeta, rofanDetailParts, variableNames,
+  PLATFORM_NAME, ROFAN_DETAIL, convertNotation, fieldChecks, findNotations, fixNotations, formFor, highlightHtml, loadMeta, previewParts, rofanDetailParts, variableNames,
 } from './chatbot_kit.js';
+import { chooseProposals, profileProposals } from './chatbot_profile.js';
 
 const SAVE_DELAY = 1000;
 
@@ -17,6 +19,8 @@ export async function render(el, { id, nid }, _query, app) {
   const kind = node.kind;
   const form = formFor(kind, story.edit_mode);
   const needs = (t) => form.some((f) => f.type === t || f.fields?.some((g) => g.type === t));
+  // 프로필에서 채우기에 쓸 캐릭터: 인물 카드는 가리키는 캐릭터, 스토리 카드는 대표 캐릭터
+  const profileId = () => (kind === 'character' ? draft.source_character_id ?? story.main_character_id : kind === 'story' ? story.main_character_id : null);
   const [characters, gallery] = await Promise.all([
     needs('character') || kind === 'character' ? api.get('/api/characters') : [],
     needs('asset') && story.main_character_id ? api.get(`/api/characters/${story.main_character_id}`).then((c) => c.gallery) : [],
@@ -29,6 +33,9 @@ export async function render(el, { id, nid }, _query, app) {
   let saving = null;
   let lastError = '';
   const fields = {}; // path → {limits, notation}
+  let previewMode = 'preview'; // preview | rofan | rplay
+  let tryUser = ''; // "이름 바꿔 보기" (저장 안 함)
+  let savedAt = null;
 
   const others = () => story.nodes.filter((n) => n.id !== nid);
   const variables = () => variableNames(story.nodes.map((n) => (n.id === nid ? { ...n, content: draft.content } : n)));
@@ -48,6 +55,7 @@ export async function render(el, { id, nid }, _query, app) {
         <div class="sp"></div>
         <span class="cb-status" data-status></span>
         <a class="btn" href="#/chatbot/${story.id}">← 로드맵</a>
+        ${['character', 'story'].includes(kind) ? html`<button class="btn" data-fill ${profileId() ? '' : 'disabled title="이을 캐릭터가 없어요"'}>☺ 프로필에서 채우기</button>` : ''}
         ${kind === 'story' ? '' : html`<span class="menu-wrap"><button class="btn" data-more>⋯</button></span>`}
         <button class="btn pri" data-save>저장</button>
       </div>
@@ -63,6 +71,7 @@ export async function render(el, { id, nid }, _query, app) {
     for (const path of Object.keys(fields)) refreshField(path);
     refreshCounts();
     showStatus();
+    drawPreview();
   };
 
   const titleField = () => {
@@ -156,7 +165,8 @@ export async function render(el, { id, nid }, _query, app) {
     }
   }
 
-  const side = () => html`<div class="card">
+  const side = () => html`<div class="card cb-preview" data-preview></div>
+    <div class="card">
       <h3>글자 수 <small>기준일 ${meta.limits_checked_on}</small></h3>
       <div data-side-counts></div>
       <div class="hint">로판은 글자, 로플은 토큰(≈ 근사치)으로 세요. 90% 이상 주황, 넘으면 빨강. 플랫폼은 넘친 부분을 말없이 잘라요.</div>
@@ -169,8 +179,90 @@ export async function render(el, { id, nid }, _query, app) {
         <dt><code class="n-variable">{{var_이름}}</code></dt><dd>변수 카드의 값 · 로판에선 낱말로</dd>
         <dt><code class="n-invalid">{{Char}}</code></dt><dd>잘못된 표기 — 노란 밑줄, 바꾸기 제안</dd>
       </dl>
-      <div class="hint">저장 후 미리보기(이름 바꿔 보기)는 다음 단계(3-3)에서 붙어요.</div>
     </div>`;
+
+  // ───── 저장 후 미리보기 (기획서 2-2) ─────
+
+  const charName = () => (kind === 'character' ? node.title : story.main_character_name) || '캐릭터';
+  const nickname = () => app.settings.chat_nickname || app.user.display_name;
+  /** 변수 예시 값 = 변수 카드의 처음 값 */
+  const sampleValues = () =>
+    Object.fromEntries(story.nodes.filter((n) => n.kind === 'variable' && n.content.name && n.content.initial_value).map((n) => [n.content.name, n.content.initial_value]));
+
+  /** 저장된 카드에서 보여 줄 글들 [{label, text, bubble}] — 시작 메시지·첫 메시지는 말풍선으로 맨 위에 */
+  const previewTexts = () => {
+    const c = node.content;
+    const out = [];
+    for (const f of form) {
+      if (f.type === 'text' && !f.single && c[f.path]?.trim()) out.push({ label: f.label, text: c[f.path], bubble: f.path === 'solo_first_message' });
+      if (f.type === 'rows' && f.path === 'start_messages') {
+        for (const m of c.start_messages || []) if (m.body?.trim()) out.push({ label: `시작 메시지 · ${m.name || '이름 없음'}`, text: m.body, bubble: true });
+      }
+    }
+    return out.sort((a, b) => Number(b.bubble) - Number(a.bubble));
+  };
+
+  const previewHtml = (text) => {
+    if (previewMode !== 'preview') return raw(highlightHtml(convertNotation(text, previewMode, charName())));
+    return html`${previewParts(text, { charName: charName(), userName: tryUser || nickname(), values: sampleValues() }).map((p) =>
+      p.kind ? html`<b class="n-${p.kind}">${p.text}</b>` : p.text,
+    )}`;
+  };
+
+  const nameSource = () =>
+    tryUser ? '잠깐 바꿔 보는 중 · 저장 안 돼요' : app.settings.chat_nickname ? '설정의 대화용 별명' : '계정 이름 (설정에서 대화용 별명을 정할 수 있어요)';
+
+  function drawPreview() {
+    const box = $('[data-preview]', el);
+    if (!box) return;
+    const texts = previewTexts();
+    put(
+      box,
+      html`<div class="card-h"><h3 style="margin:0">저장 후 미리보기 ${savedAt ? html`<small class="cb-status ok">✓ 방금 저장</small>` : ''}</h3>
+        <div class="seg">${[['preview', '미리보기'], ['rofan', '로판'], ['rplay', '로플']].map(
+          ([m, label]) => html`<a class="${previewMode === m ? 'on' : ''}" data-pmode="${m}" title="${m === 'preview' ? '이름을 넣어서' : `${label}에 붙여 넣을 모양`}">${label}</a>`,
+        )}</div></div>
+      ${previewMode === 'preview'
+        ? html`<div class="pv-names">
+            <span><code class="n-char">{{char}}</code> = <b>${charName()}</b></span>
+            <label><code class="n-user">{{user}}</code> = <input type="text" data-try-user value="${tryUser}" placeholder="${nickname()}" maxlength="30" aria-label="이름 바꿔 보기"></label>
+          </div>
+          <div class="sub pv-src">${nameSource()} · <a href="#/settings">설정</a></div>`
+        : html`<div class="sub pv-src">${previewMode === 'rofan' ? '로판AI에 붙일 모양: {{char}}·{{user}} 그대로, 변수는 낱말로' : '로플챗에 붙일 모양: {{char}} → 캐릭터 이름, {{user}}·변수 그대로'}</div>`}
+      ${texts.length
+        ? texts.map(
+            (t) => html`<div class="pv-item"><small>${t.label}</small>${t.bubble
+              ? html`<div class="pv-bubble"><span class="pv-who">${charName()}</span><div data-pv>${previewHtml(t.text)}</div></div>`
+              : html`<div class="pv-text" data-pv>${previewHtml(t.text)}</div>`}</div>`,
+          )
+        : html`<div class="sub">글을 쓰고 저장하면 여기에 실제로 보이는 모습이 떠요.</div>`}`,
+    );
+    $$('[data-pmode]', box).forEach((a) => (a.onclick = () => ((previewMode = a.dataset.pmode), drawPreview())));
+    const tu = $('[data-try-user]', box);
+    if (tu) {
+      // 입력칸은 그대로 두고 아래 글만 다시 (저장 안 함)
+      tu.oninput = () => {
+        tryUser = tu.value.trim();
+        $$('[data-pv]', box).forEach((d, i) => put(d, previewHtml(texts[i].text)));
+        $('.pv-src', box).firstChild.textContent = `${nameSource()} · `;
+      };
+    }
+  }
+
+  /** 프로필에서 채우기: 제안 → 전/후 비교 창 → 고른 칸만 넣고 저장 */
+  async function fillFromProfile() {
+    const cid = profileId();
+    if (!cid) return;
+    const c = await attempt(() => api.get(`/api/characters/${cid}`));
+    const proposals = profileProposals(kind, c);
+    if (!proposals.length) return toast('프로필에 채울 내용이 없어요', 'error');
+    const chosen = await chooseProposals(c.name, proposals, draft.content);
+    if (!chosen?.length) return;
+    for (const p of chosen) draft.content[p.path] = p.after;
+    markDirty();
+    draw();
+    toast(`${chosen.length}칸을 채웠어요`);
+  }
 
   // ───── 칸 새로 고침 (다시 그리지 않고 그 자리만) ─────
 
@@ -282,6 +374,8 @@ export async function render(el, { id, nid }, _query, app) {
       .then((saved) => {
         node = saved;
         story.nodes = story.nodes.map((n) => (n.id === nid ? saved : n));
+        savedAt = Date.now();
+        drawPreview();
       })
       .catch((e) => {
         dirty = true;
@@ -381,6 +475,8 @@ export async function render(el, { id, nid }, _query, app) {
     // 입력칸 스크롤과 색칠 층 맞추기 (높이를 늘리므로 거의 없지만 휠·붙여넣기 순간 대비)
     $$('.nf-box textarea', el).forEach((ta) => ta.addEventListener('scroll', () => (ta.previousElementSibling.scrollTop = ta.scrollTop)));
 
+    const fill = $('[data-fill]', el);
+    if (fill) fill.onclick = fillFromProfile;
     $('[data-save]', el).onclick = () => (dirty ? save().then(() => !lastError && toast('저장했어요')) : toast('이미 저장돼 있어요'));
     const more = $('[data-more]', el);
     if (more) {

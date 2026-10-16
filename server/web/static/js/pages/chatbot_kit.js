@@ -89,15 +89,43 @@ export function findNotations(text) {
 }
 
 /** 잘못된 표기를 제안대로 고친다 (only가 있으면 그 위치 하나만) */
-export function fixNotations(text, only = null) {
+export const fixNotations = (text, only = null) =>
+  replaceNotations(text, (m) => (m.kind === 'invalid' && (only === null || m.start === only) ? m.suggestion : null));
+
+/** 찾은 표기를 pick이 돌려준 글로 바꾼다 (null이면 그대로) */
+function replaceNotations(text, pick) {
   let out = '';
   let at = 0;
   for (const m of findNotations(text)) {
-    if (m.kind !== 'invalid' || (only !== null && m.start !== only)) continue;
-    out += text.slice(at, m.start) + m.suggestion;
+    const to = pick(m);
+    if (to == null) continue;
+    out += text.slice(at, m.start) + to;
     at = m.end;
   }
   return out + text.slice(at);
+}
+
+/** 플랫폼에 붙여 넣을 모양 (notation.dart convertNotation) — 로판: 변수는 낱말, 로플: {{char}} → 이름 */
+export const convertNotation = (text, platform, charName) =>
+  replaceNotations(text, (m) => {
+    if (m.kind === 'char') return platform === 'rplay' ? charName : null;
+    if (m.kind === 'variable') return platform === 'rplay' ? null : m.name;
+    return null;
+  });
+
+/** 저장 후 미리보기 (notation.dart renderPreview) — {{char}} → 이름, {{user}} → 별명, {{var_x}} → 예시 값 또는 이름.
+ * 바뀐 자리는 {text, kind} 조각으로 돌려줘서 화면이 색을 입힌다 */
+export function previewParts(text, { charName, userName, values = {} }) {
+  const parts = [];
+  let at = 0;
+  for (const m of findNotations(text)) {
+    if (m.kind === 'invalid') continue;
+    parts.push({ text: text.slice(at, m.start) });
+    parts.push({ kind: m.kind, text: m.kind === 'char' ? charName : m.kind === 'user' ? userName : (values[m.name] ?? m.name) });
+    at = m.end;
+  }
+  parts.push({ text: text.slice(at) });
+  return parts.filter((p) => p.text);
 }
 
 /** 입력칸 뒤에 깔 색칠 HTML (글자 자리는 입력칸과 똑같이) */

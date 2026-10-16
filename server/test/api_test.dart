@@ -81,6 +81,10 @@ void main() {
       expect((await c.ok('PUT', '/api/settings', {'theme': 'dark'}))['theme'], 'dark');
       expect((await c.call('PUT', '/api/settings', {'theme': 'pink'})).$1, 400);
       expect((await c.call('PUT', '/api/settings', {'unknown': '1'})).$1, 400);
+      // 대화용 별명 (챗봇 미리보기의 {{user}}) — 30자까지, 비우면 지워짐
+      expect((await c.ok('PUT', '/api/settings', {'chat_nickname': '주인장'}))['chat_nickname'], '주인장');
+      expect((await c.call('PUT', '/api/settings', {'chat_nickname': '가' * 31})).$1, 400);
+      expect((await c.ok('PUT', '/api/settings', {'chat_nickname': ''}))['chat_nickname'], isNull);
     });
   });
 

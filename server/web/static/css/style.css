@@ -506,3 +506,32 @@ a.cb-alert:hover { text-decoration: underline; }
   .nf-count { margin-left: 0; flex-basis: 100%; white-space: normal; }
   .nf-inline { max-width: none; }
 }
+
+/* 저장 후 미리보기 · 프로필에서 채우기 (3-3) */
+.cb-preview { display: grid; gap: 12px; }
+.cb-preview .card-h { margin-bottom: 0; }
+.pv-names { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
+.pv-names label { display: inline-flex; align-items: center; gap: 6px; flex: 1; min-width: 160px; }
+.pv-names input { padding: 6px 10px; }
+.pv-src { margin-top: -6px; font-size: 12px; }
+.pv-src a { color: var(--accent); }
+.pv-item { display: grid; gap: 4px; }
+.pv-text, .pv-bubble { max-height: 320px; overflow: auto; }
+.pv-item > small { font-size: 11px; color: var(--muted); }
+.pv-text { font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.pv-bubble { background: var(--surface2); border: 1px solid var(--line); border-radius: 4px 14px 14px 14px; padding: 10px 12px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+.pv-who { display: block; font-size: 12px; font-weight: 700; color: var(--rose); margin-bottom: 2px; }
+.pv-text b, .pv-bubble b { font-weight: 700; background: none; }
+.pv-text mark, .pv-bubble mark { background: none; color: inherit; }
+.pv-text mark.n-char, .pv-bubble mark.n-char { color: var(--rose); }
+.pv-text mark.n-user, .pv-bubble mark.n-user { color: var(--accent); }
+.pv-text mark.n-variable, .pv-bubble mark.n-variable { color: var(--ok); }
+.pf-list { display: grid; gap: 10px; max-height: min(60vh, 560px); overflow: auto; }
+.pf-row { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+.pf-row.same { opacity: .6; cursor: default; }
+.pf-h { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.pf-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; }
+.pf-cols > span { white-space: pre-wrap; word-break: break-word; border-radius: 9px; padding: 8px 10px; max-height: 160px; overflow: auto; }
+.pf-before { background: var(--surface2); color: var(--muted); }
+.pf-after { background: var(--ok-soft); }
+@media (max-width: 760px) { .pf-cols { grid-template-columns: 1fr; } }

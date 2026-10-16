@@ -1,4 +1,4 @@
-// 설정 — 이름, 화면 테마, 비밀번호, 로그아웃.
+// 설정 — 이름, 대화용 별명, 화면 테마, 비밀번호, 로그아웃.
 import { api } from '../api.js';
 import { $, $$, attempt, html, render as put } from '../ui.js';
 
@@ -11,6 +11,11 @@ export async function render(el, _params, _query, app) {
       <form class="card form" data-profile><h3>내 정보</h3>
         <label class="f">이름 <small>화면과 블로그에 보여요</small><input type="text" name="display_name" value="${app.user.display_name}" maxlength="30"></label>
         <div class="sub">아이디: ${app.user.login_name}</div>
+        <div><button class="btn pri">저장</button></div></form>
+
+      <form class="card form" data-chat><h3>챗봇 대화</h3>
+        <label class="f">대화용 별명 <small>챗봇 미리보기에서 {{user}} 자리에 들어가요. 비우면 이름(${app.user.display_name})을 써요</small>
+          <input type="text" name="chat_nickname" value="${app.settings.chat_nickname || ''}" maxlength="30" placeholder="${app.user.display_name}"></label>
         <div><button class="btn pri">저장</button></div></form>
 
       <div class="card"><h3>화면 테마</h3><div class="filters" style="margin:0">
@@ -33,12 +38,20 @@ export async function render(el, _params, _query, app) {
     app.user = r.user;
     $('.avatar-me').textContent = [...r.user.display_name][0];
   };
+  $('[data-chat]', el).onsubmit = async (e) => {
+    e.preventDefault();
+    app.settings = await attempt(() => api.put('/api/settings', { chat_nickname: e.currentTarget.chat_nickname.value.trim() }), '저장했어요');
+  };
   $$('[data-theme]', el).forEach(
     (b) =>
       (b.onclick = async () => {
         await attempt(() => api.put('/api/settings', { theme: b.dataset.theme }));
         app.setTheme(b.dataset.theme);
-        $$('[data-theme]', el).forEach((x) => x.classList.toggle('a', x === b));
+        $('[data-chat]', el).onsubmit = async (e) => {
+    e.preventDefault();
+    app.settings = await attempt(() => api.put('/api/settings', { chat_nickname: e.currentTarget.chat_nickname.value.trim() }), '저장했어요');
+  };
+  $$('[data-theme]', el).forEach((x) => x.classList.toggle('a', x === b));
       }),
   );
   $('[data-password]', el).onsubmit = async (e) => {
