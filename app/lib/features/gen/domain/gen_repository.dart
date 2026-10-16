@@ -16,6 +16,15 @@ abstract interface class GenRepository {
   /// 내가 가르친 태그 → 카테고리 (붙여넣은 프롬프트를 분류할 때 기본 규칙보다 먼저 봄)
   Future<Map<String, String>> fetchLearnedDictionary();
 
+  /// 모든 캐릭터 공통 기본값 (품질·네거티브)
+  Future<GenDefaults> fetchDefaults();
+
+  /// 보낸 쪽만 바꾼다
+  Future<GenDefaults> saveDefaults({List<String>? quality, List<String>? negative});
+
+  /// 네거티브 세트: 기본 세트 + 내가 만든 세트
+  Future<List<GenNegativeSet>> fetchNegativeSets();
+
   /// [id]가 null이면 새로 만들고, 있으면 고친다
   Future<GenPreset> savePreset(int characterId, int? id, GenPresetDraft draft);
 

@@ -9,6 +9,8 @@ import '../../../core/utils/int_bool_converter.dart';
 // 카테고리 키·화면 이름은 shared 것을 그대로 내보낸다
 export 'package:loreshelf_shared/loreshelf_shared.dart' show promptCategoryKeys, promptCategoryLabels;
 
+export 'gen_extras.dart';
+
 part 'gen.freezed.dart';
 part 'gen.g.dart';
 

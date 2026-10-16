@@ -142,3 +142,15 @@ abstract class GenRecordDraft with _$GenRecordDraft, PromptParts {
         if (extra.isNotEmpty) 'extra': extra,
       };
 }
+
+/// 칸 [category]의 [index]번 태그를 뺀 태그 묶음 (비게 된 칸은 지움) — 칩 ✕
+Map<String, List<GenTag>> tagsWithout(Map<String, List<GenTag>> tags, String category, int index) => {
+      for (final e in tags.entries)
+        if (e.key != category)
+          e.key: e.value
+        else if (e.value.length > 1)
+          e.key: [for (final (i, t) in e.value.indexed) if (i != index) t],
+    };
+
+/// 네거티브 [index]번을 뺀 목록
+List<String> negativeWithout(List<String> negative, int index) => [for (final (i, t) in negative.indexed) if (i != index) t];

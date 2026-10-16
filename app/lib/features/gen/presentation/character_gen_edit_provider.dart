@@ -5,6 +5,7 @@
 // 무엇이든 바뀌면 characterGenProvider를 다시 받게 한다.
 import 'dart:typed_data';
 
+import 'package:hooks_riverpod/hooks_riverpod.dart' show FutureProvider;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../data/gen_repository_impl.dart';
@@ -22,6 +23,14 @@ Future<List<GenLora>> genLoraList(Ref ref) => ref.watch(genRepositoryProvider).f
 /// 내가 가르친 태그 → 카테고리 (붙여넣기 분류 때 기본 규칙보다 먼저 봄)
 @riverpod
 Future<Map<String, String>> genLearnedDictionary(Ref ref) => ref.watch(genRepositoryProvider).fetchLearnedDictionary();
+
+// 아래 둘은 코드 생성 없이 직접 쓴 provider (2026-10-16, 이 PC에서 build_runner가 중간에 멈춰서). 하는 일은 @riverpod와 같다.
+
+/// 모든 캐릭터 공통 기본값 — 붙여 넣을 때 겹치는 건 빼고, 복사할 때 합친다
+final genDefaultsProvider = FutureProvider<GenDefaults>((ref) => ref.watch(genRepositoryProvider).fetchDefaults());
+
+/// 공통 기본값 칸에서 눌러 넣는 네거티브 세트 (기본 + 내가 만든 것)
+final genNegativeSetsProvider = FutureProvider<List<GenNegativeSet>>((ref) => ref.watch(genRepositoryProvider).fetchNegativeSets());
 
 @riverpod
 class GenPresetSaver extends _$GenPresetSaver {
@@ -78,4 +87,15 @@ class GenActions {
   Future<void> deleteRecord(int characterId, int id) => _run(characterId, () => _repo.deleteRecord(id));
 
   Future<GenRecord> setCover(int characterId, int id) => _run(characterId, () => _repo.setCover(id));
+
+  Future<GenDefaults> saveDefaults({List<String>? quality, List<String>? negative}) async {
+    final out = await _repo.saveDefaults(quality: quality, negative: negative);
+    _ref.invalidate(genDefaultsProvider);
+    return out;
+  }
+
+  /// 칩 ✕처럼 누르면 바로 저장하는 고치기
+  Future<GenPreset> savePreset(int characterId, int? id, GenPresetDraft draft) => _run(characterId, () => _repo.savePreset(characterId, id, draft));
+
+  Future<GenRecord> saveRecord(int characterId, int id, GenRecordDraft draft) => _run(characterId, () => _repo.saveRecord(characterId, id, draft));
 }

@@ -65,6 +65,21 @@ class FakeGenRepository implements GenRepository {
   @override
   Future<Map<String, String>> fetchLearnedDictionary() async => const {};
 
+  var defaults = const GenDefaults(quality: ['masterpiece'], negative: ['lowres']);
+
+  @override
+  Future<GenDefaults> fetchDefaults() async => defaults;
+
+  @override
+  Future<GenDefaults> saveDefaults({List<String>? quality, List<String>? negative}) async =>
+      defaults = GenDefaults(quality: quality ?? defaults.quality, negative: negative ?? defaults.negative);
+
+  @override
+  Future<List<GenNegativeSet>> fetchNegativeSets() async => const [
+        GenNegativeSet(name: '품질', negative: ['lowres', 'worst quality'], builtin: true),
+        GenNegativeSet(id: 1, name: '내 세트', negative: ['nsfw']),
+      ];
+
   final savedPresets = <Map<String, Object?>>[];
   final savedRecords = <Map<String, Object?>>[];
   final calls = <String>[];
@@ -136,6 +151,118 @@ void main() {
     expect(r.lineOf('character'), '1girl, (silver hair:1.2)');
   });
 
+  test('기록 복사 = 고정 프롬프트 + 기록 (겹치는 태그는 한 번만)', () {
+    const preset = GenPreset(id: 1, name: '기본 외형', tags: {
+      'character': [GenTag(tag: 'silver hair', weight: 1.2)],
+    }, negative: ['lowres']);
+    final r = GenRecord.fromJson(recordJson);
+    expect(MergedPrompt(preset, r).promptText(),
+        '(silver hair:1.2), 1girl, masterpiece, <lora:liaBellot_v2:0.8>, <lora:unknown:1>\nNegative prompt: lowres');
+    const d = GenDefaults(quality: ['best quality', 'masterpiece'], negative: ['bad hands']);
+    expect(WithDefaults(d, MergedPrompt(preset, r)).promptText(),
+        '(silver hair:1.2), 1girl, best quality, masterpiece, <lora:liaBellot_v2:0.8>, <lora:unknown:1>\nNegative prompt: bad hands, lowres');
+  });
+
+  test('칩 ✕ 도우미', () {
+    final tags = {
+      'character': [const GenTag(tag: 'a'), const GenTag(tag: 'b')],
+      'pose': [const GenTag(tag: 'c')],
+    };
+    expect(tagsWithout(tags, 'character', 0)['character'], [const GenTag(tag: 'b')]);
+    expect(tagsWithout(tags, 'pose', 0).containsKey('pose'), isFalse);
+    expect(negativeWithout(['x', 'y'], 1), ['x']);
+  });
+
+  Future<FakeGenRepository> pumpTab(WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final repo = FakeGenRepository();
+    tester.view.physicalSize = const Size(1200, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs), genRepositoryProvider.overrideWithValue(repo)],
+      child: MaterialApp(
+        theme: AppTheme.light(),
+        home: const Scaffold(body: SingleChildScrollView(child: CharacterGenTab(1))),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    return repo;
+  }
+
+  testWidgets('고정 프롬프트 칩: 누르면 ✕, ✕로 지우면 저장', (tester) async {
+    final repo = await pumpTab(tester);
+    expect(find.byIcon(Icons.close), findsNothing);
+    await tester.tap(find.text('silver hair 1.2'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(repo.savedPresets.last['tags'], isEmpty);
+  });
+
+  testWidgets('공통 기본값: 네거티브 세트 넣기, 글로 더하기, ✕로 빼기', (tester) async {
+    final repo = await pumpTab(tester);
+    expect(find.text('모든 캐릭터 공통 기본값'), findsOneWidget);
+    await tester.tap(find.text('+ 품질'));
+    await tester.pumpAndSettle();
+    expect(repo.defaults.negative, ['lowres', 'worst quality']);
+
+    await tester.enterText(find.widgetWithText(TextField, '태그 추가 (쉼표로 나눠서)'), 'absurdres, masterpiece');
+    await tester.tap(find.text('추가'));
+    await tester.pumpAndSettle();
+    expect(repo.defaults.quality, ['masterpiece', 'absurdres']);
+
+    await tester.tap(find.text('absurdres'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.close));
+    await tester.pumpAndSettle();
+    expect(repo.defaults.quality, ['masterpiece']);
+  });
+
+  testWidgets('붙여 넣으면 공통 기본값과 겹치는 태그는 빠지고 작게 보인다', (tester) async {
+    await pumpTab(tester);
+    await tester.enterText(find.widgetWithText(TextField, '프롬프트 붙여넣기'), 'masterpiece, 1boy\nNegative prompt: lowres, extra ears');
+    await tester.pump();
+    await tester.tap(find.text('자동 분류'));
+    await tester.pumpAndSettle();
+    expect(find.text('공통 기본값과 겹쳐서 뺐어요: masterpiece, lowres'), findsOneWidget);
+    expect(find.text('extra ears'), findsOneWidget);
+  });
+
+  testWidgets('붙여넣기 → 고정 / 이번만 나눠서 저장 (이미 있는 태그는 빼고)', (tester) async {
+    final repo = await pumpTab(tester);
+    await tester.enterText(find.widgetWithText(TextField, '프롬프트 붙여넣기'), '1boy, silver hair, shy, black vest, bouquet, smile, portrait, white background');
+    await tester.pump();
+    await tester.tap(find.text('자동 분류'));
+    await tester.pumpAndSettle();
+    expect(find.text('성격·분위기'), findsOneWidget);
+    expect(find.text('소품'), findsOneWidget);
+    expect(find.text('이번만'), findsWidgets);
+
+    // 의상은 이번만으로 바꿔 본다
+    final outfitRow = find.ancestor(of: find.text('의상'), matching: find.byType(Column)).first;
+    await tester.tap(find.descendant(of: outfitRow, matching: find.text('이번만')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('고정 / 이번만 나눠서 저장'));
+    await tester.pumpAndSettle();
+    expect(find.text("고정 프롬프트 '기본 외형'에 추가돼요 · 2개"), findsOneWidget); // 1boy, shy (silver hair는 이미 있음)
+    expect(find.text('이미 들어 있는 1개는 건너뛰어요'), findsOneWidget);
+    expect(find.text('이번 생성 기록에 들어가요 · 5개'), findsOneWidget);
+    await tester.tap(find.byType(Checkbox));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('확인하고 저장'));
+    await tester.pumpAndSettle();
+
+    final saved = repo.savedPresets.last['tags'] as Map;
+    expect([for (final t in saved['character'] as List) (t as Map)['tag']], ['silver hair', '1boy']);
+    expect([for (final t in saved['personality'] as List) (t as Map)['tag']], ['shy']);
+    expect(saved.containsKey('outfit'), isFalse);
+    expect(saved.containsKey('pose'), isFalse);
+    expect(repo.savedRecords, isEmpty);
+  });
+
   testWidgets('이미지·프롬프트 탭: 프리셋 고르기, 기록 보기', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -153,7 +280,7 @@ void main() {
     await tester.tap(find.text('전투복').first);
     await tester.pumpAndSettle();
     expect(find.text('silver armor'), findsOneWidget);
-    expect(find.text('네거티브'), findsOneWidget);
+    expect(find.text('네거티브'), findsWidgets);
 
     expect(find.text('생성 기록 1'), findsOneWidget);
     expect(find.text('전투복 · 노을 폐허'), findsOneWidget);

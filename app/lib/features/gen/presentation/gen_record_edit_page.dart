@@ -49,6 +49,12 @@ class GenRecordEditPage extends HookConsumerWidget {
     final c = context.colors;
 
     void set(GenRecordDraft Function(GenRecordDraft) change) => draft.value = change(draft.value);
+    // 네거티브 칸은 칩 ✕·세트·붙여넣기로도 바뀌니 글 상자와 같이 맞춘다
+    final negText = useTextEditingController(text: d.negative.join(', '));
+    void setNegative(List<String> list) {
+      set((x) => x.copyWith(negative: list));
+      negText.text = list.join(', ');
+    }
 
     Future<void> pickRecordImage() async {
       final picked = await pickImage();
@@ -175,7 +181,14 @@ class GenRecordEditPage extends HookConsumerWidget {
                   title: '프롬프트 붙여넣기',
                   child: PromptPasteClassifier(
                     initialText: d.promptRaw,
-                    onClassified: (r) => set((x) => x.copyWith(promptRaw: r.text, tags: r.tags, negative: r.negative, loras: r.loras)),
+                    onClassified: (r) {
+                      final s = (ref.read(genDefaultsProvider).value ?? const GenDefaults()).strip(r.tags, r.negative);
+                      set((x) => x.copyWith(promptRaw: r.text, tags: s.tags, loras: r.loras));
+                      setNegative(s.negative);
+                      if (s.removed.isNotEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('공통 기본값과 겹쳐서 뺐어요: ${s.removed.join(', ')}')));
+                      }
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -183,18 +196,23 @@ class GenRecordEditPage extends HookConsumerWidget {
                   title: '분류 결과',
                   child: d.usedCategories.isEmpty && d.negative.isEmpty
                       ? Text('아직 없어요. 위에서 붙여넣고 자동 분류해 보세요', style: TextStyle(color: c.muted))
-                      : PromptRows(d),
+                      : PromptRows(d,
+                          onDelete: (k, i) => k == 'negative'
+                              ? setNegative(negativeWithout(d.negative, i))
+                              : set((x) => x.copyWith(tags: tagsWithout(x.tags, k, i)))),
                 ),
                 const SizedBox(height: 16),
                 SectionCard(
                   title: '네거티브 · 쉼표로 구분',
-                  child: TextFormField(
-                    initialValue: d.negative.join(', '),
-                    minLines: 1,
-                    maxLines: 3,
-                    decoration: const InputDecoration(hintText: 'lowres, bad anatomy'),
-                    onChanged: (v) => set((x) => x.copyWith(negative: _splitCsv(v))),
-                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                    TextFormField(
+                      controller: negText,
+                      minLines: 1,
+                      maxLines: 3,
+                      decoration: const InputDecoration(hintText: 'lowres, bad anatomy'),
+                      onChanged: (v) => set((x) => x.copyWith(negative: _splitCsv(v))),
+                    ),
+                  ]),
                 ),
                 const SizedBox(height: 16),
                 SectionCard(
