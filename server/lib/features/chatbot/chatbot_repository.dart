@@ -30,7 +30,11 @@ class ChatbotRepository {
   }
 
   Row story(int userId, int id) {
-    final r = db.one('SELECT * FROM chatbot_stories WHERE id = ? AND user_id = ? AND deleted_at IS NULL', [id, userId]) ??
+    final r = db.one('''
+            SELECT s.*, c.name AS main_character_name, p.name AS project_name FROM chatbot_stories s
+            LEFT JOIN characters c ON c.id = s.main_character_id AND c.deleted_at IS NULL
+            LEFT JOIN projects p ON p.id = s.project_id AND p.deleted_at IS NULL
+            WHERE s.id = ? AND s.user_id = ? AND s.deleted_at IS NULL''', [id, userId]) ??
         (throw ApiError('챗봇 작품을 찾을 수 없어요', 404));
     return _decodeStory(r);
   }

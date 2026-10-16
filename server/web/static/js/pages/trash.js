@@ -2,11 +2,12 @@
 import { api } from '../api.js';
 import { $$, ago, attempt, confirmDialog, html, render as put } from '../ui.js';
 
-const LABEL = { characters: '캐릭터', worlds: '세계관', projects: '프로젝트' };
+const LABEL = { characters: '캐릭터', worlds: '세계관', projects: '프로젝트', chatbot_stories: '챗봇 설정' };
 
 export async function render(el, _params, _query, app) {
   const t = await api.get('/api/trash');
-  const total = t.characters.length + t.worlds.length + t.projects.length;
+  const stories = t.chatbot_stories || [];
+  const total = t.characters.length + t.worlds.length + t.projects.length + stories.length;
   const section = (kind, rows, note) =>
     rows.length
       ? html`<div class="sec-head"><h2>${LABEL[kind]} ${rows.length}</h2></div><div class="card" style="padding:6px 18px">${rows.map(
@@ -21,7 +22,8 @@ export async function render(el, _params, _query, app) {
     ${total ? '' : html`<div class="card empty-state"><b>휴지통이 비어 있어요</b></div>`}
     ${section('characters', t.characters, (r) => (r.project_name ? ` · ${r.project_name} 전용` : ''))}
     ${section('worlds', t.worlds, () => '')}
-    ${section('projects', t.projects, (r) => (r.own_character_count ? ` · 전용 캐릭터 ${r.own_character_count}명` : ''))}`,
+    ${section('projects', t.projects, (r) => (r.own_character_count ? ` · 전용 캐릭터 ${r.own_character_count}명` : ''))}
+    ${section('chatbot_stories', stories, (r) => (r.main_character_name ? ` · ${r.main_character_name}` : ''))}`,
   );
   $$('[data-restore]', el).forEach(
     (b) =>

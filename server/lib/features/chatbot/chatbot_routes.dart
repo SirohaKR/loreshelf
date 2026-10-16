@@ -24,6 +24,7 @@ class ChatbotRoutes {
         chatbot = ChatbotRepository(app.db);
 
   void register(Router r) {
+    r.get('/api/chatbot/meta', (Request req) => json(_meta()));
     r.get('/api/chatbot/stories', (Request req) =>
         json(chatbot.stories(req.ctx.user, characterId: toIntOrNull(req.url.queryParameters['character_id']))));
     r.post('/api/chatbot/stories', _createStory);
@@ -48,6 +49,20 @@ class ChatbotRoutes {
       return ok();
     });
   }
+
+  /// 웹 화면이 쓰는 표 — 카드 종류·이름, 빈 카드 모양, 플랫폼 글자 수 한도.
+  /// 한도 숫자는 shared의 표(platform_limits.dart) 하나에만 두고 화면은 여기서 받아 쓴다.
+  static Map<String, Object?> _meta() => {
+        'kinds': chatbotNodeKinds,
+        'kind_labels': chatbotNodeKindLabels,
+        'empty_content': {for (final k in chatbotNodeKinds) k: emptyNodeContent(k)},
+        'limits_checked_on': platformLimitsCheckedOn,
+        'limits': {
+          for (final e in platformLimits.entries)
+            e.key: {'platform': e.value.platform, 'label': e.value.label, 'max': e.value.max, 'unit': e.value.unit.name},
+        },
+        'count_limits': {for (final e in platformCountLimits.entries) e.key: {'label': e.value.label, 'max': e.value.max}},
+      };
 
   // ───── 작품 ─────
 
@@ -111,7 +126,14 @@ class ChatbotRoutes {
     chatbot.story(uid, sid);
     final b = await body(req);
     final kind = oneOf(strOrNull(b['kind']) ?? (throw ApiError('카드 종류를 골라 주세요')), chatbotNodeKinds, '');
-    final nid = chatbot.createNode(sid, _nodeValues(uid, b, kind: kind));
+    final values = _nodeValues(uid, b, kind: kind);
+    // 간편 모드의 "카드 붙이기" = 카드 + 스토리 카드로 가는 선 하나 (같이 만들어야 반쪽짜리가 안 남음)
+    final linkTo = toIntOrNull(b['link_to_chatbot_node_id']);
+    final nid = db.tx(() {
+      final nid = chatbot.createNode(sid, values);
+      if (linkTo != null) chatbot.createLink(sid, nid, linkTo);
+      return nid;
+    });
     return json(chatbot.node(uid, nid), status: 201);
   }
 

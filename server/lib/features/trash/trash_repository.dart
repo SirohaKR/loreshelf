@@ -1,9 +1,9 @@
-// 휴지통 DB — deleted_at 이 채워진 캐릭터·세계관·프로젝트. 되살리기, 영구 삭제.
+// 휴지통 DB — deleted_at 이 채워진 캐릭터·세계관·프로젝트·챗봇 설정. 되살리기, 영구 삭제.
 import '../../core/db.dart';
 import '../../core/http.dart';
 
 /// 주소의 종류 이름 → 테이블 (주소 값을 테이블 이름으로 바로 쓰지 않는다).
-const trashTables = {'characters': 'characters', 'worlds': 'worlds', 'projects': 'projects'};
+const trashTables = {'characters': 'characters', 'worlds': 'worlds', 'projects': 'projects', 'chatbot_stories': 'chatbot_stories'};
 
 class TrashRepository {
   final Db db;
@@ -17,6 +17,9 @@ class TrashRepository {
         'projects': db.rows('''SELECT p.id, p.name, p.deleted_at,
               (SELECT COUNT(*) FROM characters c WHERE c.project_id = p.id) AS own_character_count
               FROM projects p WHERE p.user_id = ? AND p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC''', [userId]),
+        'chatbot_stories': db.rows('''SELECT s.id, s.title AS name, s.deleted_at, c.name AS main_character_name
+              FROM chatbot_stories s LEFT JOIN characters c ON c.id = s.main_character_id
+              WHERE s.user_id = ? AND s.deleted_at IS NOT NULL ORDER BY s.deleted_at DESC''', [userId]),
       };
 
   String _table(String kind) => trashTables[kind] ?? (throw ApiError('없는 종류예요', 404));

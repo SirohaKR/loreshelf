@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:image/image.dart' as img;
+import 'package:loreshelf_shared/loreshelf_shared.dart';
 import 'package:server/app.dart';
 import 'package:server/core/context.dart';
 import 'package:server/core/db.dart';
@@ -501,6 +502,53 @@ void main() {
       await c.ok('DELETE', '/api/chatbot/stories/${story['id']}');
       expect((await c.call('GET', '/api/chatbot/stories/${story['id']}')).$1, 404);
       expect((await c.call('PUT', '/api/chatbot/nodes/${storyNode['id']}', {'title': 'x'})).$1, 404);
+
+      // 휴지통에서 되살린다
+      final trashed = (await c.ok('GET', '/api/trash'))['chatbot_stories'] as List;
+      expect([trashed.single['name'], trashed.single['main_character_name']], ['편의점의 밤', '세린']);
+      await c.ok('POST', '/api/trash/chatbot_stories/${story['id']}/restore');
+      expect((await c.ok('GET', '/api/chatbot/stories/${story['id']}'))['title'], '편의점의 밤');
+    });
+
+    test('웹 화면용 표: 카드 종류·빈 모양·플랫폼 한도는 shared 표 그대로', () async {
+      final meta = await c.ok('GET', '/api/chatbot/meta');
+      expect((meta['kinds'] as List).length, chatbotNodeKinds.length);
+      expect(meta['kind_labels']['extra_cast'], '기타 인물');
+      expect(meta['empty_content']['macro'], {'mode': 'always', 'keywords': [], 'body': '', 'priority': 0, 'duration_turns': 1});
+      expect(meta['limits']['rofan.detail'], {'platform': 'rofan', 'label': '세부 설정(세계관+캐릭터 소개+비밀)', 'max': 6000, 'unit': 'chars'});
+      expect(meta['limits']['rplay_simple.story.key_info']['max'], 5500);
+      expect(meta['count_limits']['rplay.image.tag']['max'], 7);
+      expect(meta['limits_checked_on'], platformLimitsCheckedOn);
+    });
+
+    test('간편 모드 카드 붙이기: 카드 + 스토리로 가는 선을 한 번에, 고친 글은 다시 읽어도 그대로', () async {
+      final ch = await c.ok('POST', '/api/characters', {'name': '하린'});
+      final story = await c.ok('POST', '/api/chatbot/stories', {'title': '새벽 편의점', 'main_character_id': ch['id']});
+      expect(story['main_character_name'], '하린');
+      final sid = story['id'], storyNodeId = (story['nodes'] as List).single['id'];
+
+      final macro = await c.ok('POST', '/api/chatbot/stories/$sid/nodes',
+          {'kind': 'macro', 'title': '고양이 두부', 'link_to_chatbot_node_id': storyNodeId, 'sort_order': 10});
+      var detail = await c.ok('GET', '/api/chatbot/stories/$sid');
+      expect((detail['links'] as List).single['from_chatbot_node_id'], macro['id']);
+      expect((detail['links'] as List).single['to_chatbot_node_id'], storyNodeId);
+
+      await c.ok('PUT', '/api/chatbot/nodes/${macro['id']}', {
+        'content': {'mode': 'keyword', 'keywords': ['고양이', ' 두부 ', ''], 'body': '{{char}}는 {{user}} 몰래 밥을 준다', 'priority': 3, 'duration_turns': 2},
+      });
+      await c.ok('PUT', '/api/chatbot/nodes/$storyNodeId', {'content': {'key_info': '{{var_호감도}}', 'start_messages': [{'name': '기본', 'body': '어서 오세요'}]}});
+      detail = await c.ok('GET', '/api/chatbot/stories/$sid');
+      final nodes = {for (final n in detail['nodes'] as List) n['kind']: n};
+      expect(nodes['macro']['content'], {'mode': 'keyword', 'keywords': ['고양이', '두부'], 'body': '{{char}}는 {{user}} 몰래 밥을 준다', 'priority': 3, 'duration_turns': 2});
+      expect(nodes['macro']['sort_order'], 10);
+      expect(nodes['story']['content']['start_messages'], [{'name': '기본', 'body': '어서 오세요'}]);
+
+      // 다른 작품의 카드로는 잇지 못하고, 그럴 땐 카드도 안 생긴다
+      final other = await c.ok('POST', '/api/chatbot/stories', {'title': '다른 작품'});
+      final otherNodeId = (other['nodes'] as List).single['id'];
+      expect((await c.call('POST', '/api/chatbot/stories/$sid/nodes', {'kind': 'user', 'link_to_chatbot_node_id': otherNodeId})).$1, 404);
+      detail = await c.ok('GET', '/api/chatbot/stories/$sid');
+      expect((detail['nodes'] as List).length, 2);
     });
 
     test('잘못된 값은 거부', () async {

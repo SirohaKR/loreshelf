@@ -11,6 +11,8 @@ import * as search from './pages/search.js';
 import * as trash from './pages/trash.js';
 import * as settings from './pages/settings.js';
 import * as genTools from './pages/gen_tools.js';
+import * as chatbot from './pages/chatbot.js';
+import * as chatbotNode from './pages/chatbot_node.js';
 import { renderAuth } from './pages/auth.js';
 
 // 주소 → 페이지. :id 는 숫자.
@@ -20,6 +22,8 @@ const ROUTES = [
   ['/characters/new', characterEdit.render, '캐릭터'],
   ['/characters/:id', character.render, '캐릭터'],
   ['/characters/:id/edit', characterEdit.render, '캐릭터'],
+  ['/chatbot/:id', chatbot.renderRoadmap, '캐릭터'],
+  ['/chatbot/:id/nodes/:nid', chatbotNode.render, '캐릭터'],
   ['/worlds', worlds.renderList, '세계관'],
   ['/worlds/new', worlds.renderEdit, '세계관'],
   ['/worlds/:id', worlds.renderDetail, '세계관'],

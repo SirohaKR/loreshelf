@@ -1,12 +1,13 @@
-// 캐릭터 상세 — 프로필 / 갤러리 탭, 즐겨찾기, 편집, 옮기기·분기·휴지통.
+// 캐릭터 상세 — 프로필 / 갤러리 / 이미지·프롬프트 / 챗봇 설정 탭, 즐겨찾기, 편집, 옮기기·분기·휴지통.
 import { api, assetUrl } from '../api.js';
+import { renderCharacterTab as renderChatbotTab } from './chatbot.js';
 import { renderPromptTab } from './character_prompt.js';
 import { genreChips, options } from '../parts.js';
 import { $, $$, KIND, attempt, confirmDialog, html, markdown, openMenu, openModal, pickFiles, portrait, render as put, toast, visibilityChip } from '../ui.js';
 
 export async function render(el, { id }, query, app) {
   let c = await api.get(`/api/characters/${id}`);
-  let tab = ['gallery', 'prompt'].includes(query.tab) ? query.tab : 'profile';
+  let tab = ['gallery', 'prompt', 'chatbot'].includes(query.tab) ? query.tab : 'profile';
 
   const draw = () => {
     const where = c.project_id
@@ -39,7 +40,7 @@ export async function render(el, { id }, query, app) {
         <a class="${tab === 'profile' ? 'on' : ''}" data-tab="profile">프로필</a>
         <a class="${tab === 'gallery' ? 'on' : ''}" data-tab="gallery">갤러리 ${c.gallery.length}</a>
         <a class="${tab === 'prompt' ? 'on' : ''}" data-tab="prompt">이미지·프롬프트</a>
-        <a class="off" title="3단계에서 만들어요">챗봇 설정</a>
+        <a class="${tab === 'chatbot' ? 'on' : ''}" data-tab="chatbot">챗봇 설정</a>
       </div>
       <div data-body>${tab === 'profile' ? profile() : tab === 'gallery' ? gallery() : ''}</div>`,
     );
@@ -94,6 +95,7 @@ export async function render(el, { id }, query, app) {
 
   const bind = () => {
     if (tab === 'prompt') renderPromptTab($('[data-body]', el), c).catch((e) => toast(e.message, 'error'));
+    if (tab === 'chatbot') renderChatbotTab($('[data-body]', el), c, app).catch((e) => toast(e.message, 'error'));
     $$('[data-tab]', el).forEach((a) =>
       a.addEventListener('click', () => {
         tab = a.dataset.tab;
