@@ -6,7 +6,9 @@ import { $, $$, attempt, confirmDialog, formData, html, openMenu, openModal, pic
 
 export const CATEGORY = {
   character: '인물·외형',
-  outfit: '의상·소품',
+  personality: '성격·분위기',
+  outfit: '의상',
+  props: '소품',
   expression: '표정',
   pose: '포즈·구도',
   background: '배경·조명',
@@ -14,10 +16,43 @@ export const CATEGORY = {
   quality: '품질',
   etc: '미분류',
 };
-const COLOR = { character: '#3f5bd8', outfit: '#d9822b', expression: '#e0a800', pose: '#7c5cd6', background: '#2f9e6b', style: '#d6487a', quality: '#6b7280', etc: '#9aa1ad' };
-// 고정 프롬프트에 넣는 것 — 포즈·표정·배경은 그림마다 바뀌니 뺀다
-const FIXED = ['character', 'outfit', 'style', 'quality', 'etc'];
+const COLOR = {
+  character: '#3f5bd8', personality: '#0e9aa7', outfit: '#d9822b', props: '#a0662f', expression: '#e0a800',
+  pose: '#7c5cd6', background: '#2f9e6b', style: '#d6487a', quality: '#6b7280', etc: '#9aa1ad',
+};
+// 붙여넣은 프롬프트를 나눌 때 기본 행선지 (shared promptCategoryDefaultTarget과 같게): 정체성은 고정, 장면은 이번만
+const DEFAULT_TARGET = {
+  character: 'fixed', personality: 'fixed', outfit: 'fixed', style: 'fixed', quality: 'fixed',
+  props: 'scene', expression: 'scene', pose: 'scene', background: 'scene', etc: 'scene',
+  negative: 'fixed', loras: 'fixed',
+};
+const TARGET_KEY = 'loreshelf.gen.targets';
 const PLATFORM_SHORT = { NovelAI: 'NAI', 'Stable Diffusion WebUI': 'SD', ComfyUI: 'Comfy', Midjourney: 'MJ' };
+
+// ───── 태그 합치기 (shared mergePromptTags와 같은 규칙: 정규화한 글이 같으면 이미 있는 것) ─────
+const norm = (s) => String(s).toLowerCase().replaceAll('_', ' ').trim();
+/** add 중에서 base에 아직 없는 태그만 */
+function newTags(base = {}, add = {}) {
+  const seen = new Set(Object.values(base).flat().map((t) => norm(t.tag)));
+  const out = {};
+  for (const k of Object.keys(CATEGORY)) {
+    for (const t of add[k] || []) {
+      if (seen.has(norm(t.tag))) continue;
+      seen.add(norm(t.tag));
+      (out[k] ||= []).push(t);
+    }
+  }
+  return out;
+}
+const mergeTags = (base = {}, add = {}) => {
+  const extra = newTags(base, add);
+  return Object.fromEntries(Object.keys(CATEGORY).filter((k) => base[k]?.length || extra[k]).map((k) => [k, [...(base[k] || []), ...(extra[k] || [])]]));
+};
+const mergeList = (base = [], add = [], key = (x) => norm(x)) => {
+  const seen = new Set(base.map(key));
+  return [...base, ...add.filter((x) => !seen.has(key(x)) && seen.add(key(x)))];
+};
+const countTags = (tags) => Object.values(tags).reduce((a, b) => a + b.length, 0);
 
 // ───── 프롬프트 글로 만들기 ─────
 const w = (n) => Math.round(n * 100) / 100;
@@ -43,32 +78,63 @@ async function copy(text, what = '복사했어요') {
   }
 }
 
-const tagChip = (t, attrs = '') => html`<span class="ptag" ${attrs}>${t.tag}${t.weight !== 1 ? html` <b>${w(t.weight)}</b>` : ''}</span>`;
+const xBtn = (k, i) => html`<button type="button" class="x" data-x="${k}" data-i="${i}" title="이 태그 지우기" aria-label="지우기">✕</button>`;
+const tagChip = (t, attrs = '', x = '') => html`<span class="ptag" ${attrs}>${t.tag}${t.weight !== 1 ? html` <b>${w(t.weight)}</b>` : ''}${x}</span>`;
 const loraChip = (l) => html`<span class="lora">${l.name} · ${w(l.weight)}</span>`;
 
-/** 카테고리별 줄 (복사 버튼 포함). movable이면 태그를 눌러 다른 칸으로 옮길 수 있다 */
-function rows({ tags = {}, negative = [], loras = [] }, { movable = false } = {}) {
+/** 칸 이름 아래 "고정 / 이번만" 토글 */
+const toggle = (k, targets) =>
+  html`<span class="tgl" data-tgl="${k}"><a class="${targets[k] === 'fixed' ? 'on' : ''}" data-to="fixed" title="캐릭터의 고정 프롬프트에 넣기">고정</a><a class="${targets[k] === 'fixed' ? '' : 'on'}" data-to="scene" title="이번 생성 기록에만">이번만</a></span>`;
+
+/**
+ * 카테고리별 줄 (복사 버튼 포함).
+ * movable: 태그를 눌러 다른 칸으로 옮기기 · del: 칩에 ✕ (data-x=칸, data-i=번호) · targets: 칸마다 고정/이번만 토글
+ */
+function rows({ tags = {}, negative = [], loras = [] }, { movable = false, del = false, targets = null } = {}) {
+  const tg = (k) => (targets ? toggle(k, targets) : '');
   const out = Object.keys(CATEGORY)
     .filter((k) => tags[k]?.length)
     .map(
-      (k) => html`<div class="crow"><div class="lb"><i style="--c:${COLOR[k]}"></i>${CATEGORY[k]}</div>
-        <div class="tags">${tags[k].map((t) => tagChip(t, movable ? html`data-move="${t.tag}" title="눌러서 다른 칸으로 옮기기" role="button"` : ''))}</div>
+      (k) => html`<div class="crow"><div class="lb"><i style="--c:${COLOR[k]}"></i>${CATEGORY[k]}${tg(k)}</div>
+        <div class="tags">${tags[k].map((t, i) => tagChip(t, movable ? html`data-move="${t.tag}" data-cat="${k}" data-i="${i}" title="눌러서 다른 칸으로 옮기기·지우기" role="button"` : del ? 'data-chip' : '', del ? xBtn(k, i) : ''))}</div>
         <button class="cp" data-copy-cat="${k}" title="이 줄 복사">⧉</button></div>`,
     );
   if (negative.length) {
-    out.push(html`<div class="crow"><div class="lb"><i style="--c:#c03d3d"></i>네거티브</div>
-      <div class="tags">${negative.map((t) => html`<span class="ptag neg">${t}</span>`)}</div>
+    out.push(html`<div class="crow"><div class="lb"><i style="--c:#c03d3d"></i>네거티브${tg('negative')}</div>
+      <div class="tags">${negative.map((t, i) => html`<span class="ptag neg" ${del ? 'data-chip' : ''}>${t}${del ? xBtn('negative', i) : ''}</span>`)}</div>
       <button class="cp" data-copy-cat="negative" title="이 줄 복사">⧉</button></div>`);
   }
   if (loras.length) {
-    out.push(html`<div class="crow"><div class="lb"><i style="--c:#2f9e6b"></i>LoRA</div>
+    out.push(html`<div class="crow"><div class="lb"><i style="--c:#2f9e6b"></i>LoRA${tg('loras')}</div>
       <div class="tags">${loras.map(loraChip)}</div><span></span></div>`);
   }
   return out.length ? out : html`<div class="sub">아직 태그가 없어요</div>`;
 }
 
-/** 분류 결과({categories, …}) → 화면용 묶음({tags, …}) */
-const asData = (p) => ({ tags: p.categories, negative: p.negative, loras: p.loras });
+/** ✕ 누르면 onDelete(칸, 번호). 터치 화면에선 칩을 한 번 누르면 ✕가 보인다 */
+function bindChipDelete(root, onDelete) {
+  $$('[data-chip]', root).forEach((c) => (c.onclick = () => c.classList.toggle('sel')));
+  $$('[data-x]', root).forEach(
+    (b) =>
+      (b.onclick = (e) => {
+        e.stopPropagation();
+        onDelete(b.dataset.x, Number(b.dataset.i));
+      }),
+  );
+}
+
+/** {tags, negative}에서 태그 하나를 뺀 새 값 */
+function withoutTag(data, k, i) {
+  if (k === 'negative') return { negative: data.negative.filter((_, j) => j !== i) };
+  const list = (data.tags[k] || []).filter((_, j) => j !== i);
+  const tags = { ...data.tags, [k]: list };
+  if (!list.length) delete tags[k];
+  return { tags };
+}
+
+/** 네거티브 세트 버튼 줄. sets = GET /api/gen/negative-sets */
+const negSetBar = (sets, manage = true) =>
+  html`<div class="negsets"><span class="sub">네거티브 세트</span>${sets.map((s, i) => html`<button type="button" class="btn sm" data-negset="${i}" title="${s.negative.join(', ')}">+ ${s.name}</button>`)}${manage ? html`<button type="button" class="linkish" data-negset-manage>세트 관리</button>` : ''}</div>`;
 
 function bindRowCopy(root, data) {
   $$('[data-copy-cat]', root).forEach(
@@ -90,12 +156,28 @@ export async function renderPromptTab(el, c) {
   let parsed = null;
   let rawText = '';
   let format = 'sd';
+  let negSets = [];
+  let dropped = new Set(); // 붙여넣기 결과에서 ✕로 뺀 태그 (글을 고치면 초기화)
+  let targets = { ...DEFAULT_TARGET };
+  try {
+    Object.assign(targets, JSON.parse(localStorage.getItem(TARGET_KEY) || '{}'));
+  } catch {
+    /* 저장소를 못 쓰면 기본값 */
+  }
+  const saveTargets = () => {
+    try {
+      localStorage.setItem(TARGET_KEY, JSON.stringify(targets));
+    } catch {
+      /* 무시 */
+    }
+  };
 
   const load = async () => {
-    [presets, records, platforms] = await Promise.all([
+    [presets, records, platforms, negSets] = await Promise.all([
       api.get(`/api/characters/${c.id}/gen-presets`),
       api.get(`/api/characters/${c.id}/gen-records`),
       api.get('/api/gen/platforms'),
+      api.get('/api/gen/negative-sets'),
     ]);
     if (!presets.some((p) => p.id === presetId)) presetId = presets[0]?.id ?? null;
   };
@@ -121,7 +203,8 @@ export async function renderPromptTab(el, c) {
         <div class="seg">${presets.map((x) => html`<a class="${x.id === presetId ? 'on' : ''}" data-preset="${x.id}">${x.name}</a>`)}<a data-preset-new title="새 고정 프롬프트">+</a></div>
       </div>
       ${p
-        ? html`${rows(p)}
+        ? html`${rows(p, { del: true })}
+          ${negSetBar(negSets)}
           <div class="acts">
             <div class="seg"><a class="${format === 'sd' ? 'on' : ''}" data-format="sd">SD 형식</a><a class="${format === 'nai' ? 'on' : ''}" data-format="nai">NovelAI 형식</a></div>
             <span class="menu-wrap"><button class="btn" data-preset-more>⋯</button></span>
@@ -139,6 +222,19 @@ export async function renderPromptTab(el, c) {
     $$('[data-format]', card).forEach((a) => (a.onclick = () => ((format = a.dataset.format), draw())));
     if (!p) return;
     bindRowCopy(card, p);
+    bindChipDelete(card, async (k, i) => {
+      const removed = k === 'negative' ? p.negative[i] : p.tags[k][i].tag;
+      await attempt(() => api.put(`/api/gen/presets/${p.id}`, withoutTag(p, k, i)), `'${removed}'을(를) 고정 프롬프트에서 뺐어요`);
+      await load();
+      draw();
+    });
+    bindNegSets(card, async (set) => {
+      const negative = mergeList(p.negative, set.negative);
+      if (negative.length === p.negative.length) return toast('이미 다 들어 있어요');
+      await attempt(() => api.put(`/api/gen/presets/${p.id}`, { negative }), `네거티브 '${set.name}' 세트를 넣었어요`);
+      await load();
+      draw();
+    });
     $('[data-preset-copy]', card).onclick = () => copy(promptText(p, format), `${format === 'sd' ? 'SD' : 'NovelAI'} 형식으로 복사했어요`);
     $('[data-preset-edit]', card).onclick = () => editPreset(p);
     $('[data-preset-more]', card).onclick = (e) => {
@@ -216,17 +312,35 @@ export async function renderPromptTab(el, c) {
     <textarea class="raw" data-raw placeholder="여기에 프롬프트를 붙여넣어요">${rawText}</textarea>
     <div data-parsed>${parsedView()}</div>`;
 
+  /** 붙여넣은 결과에서 ✕로 뺀 태그를 빼고 */
+  const current = () => {
+    const tags = {};
+    for (const [k, list] of Object.entries(parsed.categories)) {
+      const kept = list.filter((t) => !dropped.has(norm(t.tag)));
+      if (kept.length) tags[k] = kept;
+    }
+    return { tags, negative: parsed.negative.filter((t) => !dropped.has(`neg:${norm(t)}`)), loras: parsed.loras };
+  };
+
   const parsedView = () => {
     if (!parsed || !rawText.trim()) return '';
-    const total = Object.values(parsed.categories).reduce((a, b) => a + b.length, 0);
-    return html`<div class="detect">감지된 플랫폼 <span class="chip a">${parsed.platform || '알 수 없음'}</span> 태그 ${total}개 · LoRA ${parsed.loras.length}개 · 네거티브 ${parsed.negative.length}개</div>
-      <div class="parsed">${rows(asData(parsed), { movable: true })}</div>
+    const d = current();
+    return html`<div class="detect">감지된 플랫폼 <span class="chip a">${parsed.platform || '알 수 없음'}</span> 태그 ${countTags(d.tags)}개 · LoRA ${d.loras.length}개 · 네거티브 ${d.negative.length}개</div>
+      <div class="parsed">${rows(d, { movable: true, del: true, targets })}</div>
+      ${negSetBar(negSets)}
       ${Object.keys(parsed.settings).length ? html`<div class="settings">${Object.entries(parsed.settings).map(([k, v]) => html`<div><small>${k}</small><span title="${v}">${v}</span></div>`)}</div>` : ''}
-      <div class="hint">태그를 누르면 다른 칸으로 옮길 수 있고, 옮긴 태그는 내 사전에 기억돼서 다음부터 자동으로 그 칸에 들어가요.</div>
+      <div class="hint">칸 이름 아래에서 <b>고정</b>(캐릭터의 고정 프롬프트)과 <b>이번만</b>(이번 생성 기록)을 골라요. 태그를 누르면 다른 칸으로 옮기거나 지울 수 있고, 옮긴 태그는 내 사전에 기억돼서 다음부터 자동으로 그 칸에 들어가요.</div>
       <div class="acts">
-        <button class="btn" data-to-preset>고정 프롬프트에 반영</button>
-        <button class="btn pri" data-to-record>생성 기록으로 저장</button>
+        <button class="btn" data-to-record title="나누지 않고 전부 생성 기록으로">통째로 생성 기록</button>
+        <button class="btn pri" data-split>고정 / 이번만 나눠서 저장</button>
       </div>`;
+  };
+
+  const redrawParsed = () => {
+    const box = $('[data-parsed]', el);
+    if (!box) return;
+    box.innerHTML = parsedView().s ?? '';
+    bindParsed();
   };
 
   let timer = 0;
@@ -241,15 +355,13 @@ export async function renderPromptTab(el, c) {
         return;
       }
     }
-    const box = $('[data-parsed]', el);
-    if (!box) return;
-    box.innerHTML = parsedView().s ?? '';
-    bindParsed();
+    redrawParsed();
   };
 
   const bindParse = () => {
     $('[data-raw]', el).oninput = (e) => {
       rawText = e.target.value;
+      dropped = new Set();
       clearTimeout(timer);
       timer = setTimeout(reparse, 300);
     };
@@ -258,62 +370,195 @@ export async function renderPromptTab(el, c) {
 
   const bindParsed = () => {
     const box = $('[data-parsed]', el);
-    if (!box || !parsed) return;
-    bindRowCopy(box, asData(parsed));
+    if (!box || !parsed || !rawText.trim()) return;
+    const d = current();
+    const drop = (k, i) => {
+      dropped.add(k === 'negative' ? `neg:${norm(d.negative[i])}` : norm(d.tags[k][i].tag));
+      redrawParsed();
+    };
+    bindRowCopy(box, d);
+    bindChipDelete(box, drop);
+    $$('[data-tgl] a', box).forEach(
+      (a) =>
+        (a.onclick = () => {
+          targets[a.parentElement.dataset.tgl] = a.dataset.to;
+          saveTargets();
+          redrawParsed();
+        }),
+    );
     $$('[data-move]', box).forEach((t) => {
       t.classList.add('menu-wrap');
       t.onclick = (e) => {
         e.stopPropagation();
-        openMenu(
-          t,
-          Object.entries(CATEGORY).map(([k, label]) => ({
-            label: `→ ${label}`,
-            onClick: async () => {
-              await attempt(() => api.post('/api/gen/tag-rules', { tag: t.dataset.move, category: k }), `'${t.dataset.move}'은(는) 이제 ${label}`);
-              reparse();
-            },
-          })),
-        );
+        openMenu(t, [
+          ...Object.entries(CATEGORY)
+            .filter(([k]) => k !== t.dataset.cat)
+            .map(([k, label]) => ({
+              label: `→ ${label}`,
+              onClick: async () => {
+                await attempt(() => api.post('/api/gen/tag-rules', { tag: t.dataset.move, category: k }), `'${t.dataset.move}'은(는) 이제 ${label}`);
+                reparse();
+              },
+            })),
+          'sep',
+          { label: '✕ 이 태그 지우기', danger: true, onClick: () => drop(t.dataset.cat, Number(t.dataset.i)) },
+        ]);
       };
     });
-    $('[data-to-preset]', box).onclick = toPreset;
-    $('[data-to-record]', box).onclick = () => saveRecord(null, recordFromParsed());
+    bindNegSets(box, (set) => {
+      for (const t of set.negative) dropped.delete(`neg:${norm(t)}`);
+      parsed.negative = mergeList(parsed.negative, set.negative);
+      redrawParsed();
+    });
+    $('[data-split]', box).onclick = () => splitSave(d);
+    $('[data-to-record]', box).onclick = () => saveRecord(null, recordFromParsed(d));
   };
 
-  /** 붙여넣은 것 중 고정 부분(인물·의상·화풍·품질·미분류 + 네거티브 + 목록에 있는 LoRA)을 프리셋에 덮어쓰기 */
-  const toPreset = async () => {
+  /** 붙여넣은 것을 칸마다 고른 대로 나눠서: 고정 → 고른 고정 프롬프트에 (이미 있는 태그는 빼고) 추가, 이번만 → 생성 기록 */
+  const splitSave = async (d) => {
+    const keys = Object.keys(CATEGORY).filter((k) => d.tags[k]);
+    const fixedTags = Object.fromEntries(keys.filter((k) => targets[k] === 'fixed').map((k) => [k, d.tags[k]]));
+    const sceneTags = Object.fromEntries(keys.filter((k) => targets[k] !== 'fixed').map((k) => [k, d.tags[k]]));
+    const negFixed = targets.negative === 'fixed';
+    const loraFixed = targets.loras === 'fixed';
+    const known = new Set((await api.get('/api/gen/loras')).map((l) => l.name.toLowerCase()));
+    const loraKey = (l) => l.name.toLowerCase();
+    // 고정 쪽 LoRA는 목록에 있는 것만 들어가니, 목록에 없는 건 생성 기록에 남긴다
+    const fixedLoras = loraFixed ? d.loras.filter((l) => known.has(loraKey(l))) : [];
+    const sceneLoras = d.loras.filter((l) => !fixedLoras.includes(l));
+    const sceneNeg = negFixed ? [] : d.negative;
+
+    const adds = (p) => ({
+      tags: newTags(p?.tags, fixedTags),
+      negative: negFixed ? mergeList(p?.negative ?? [], d.negative).slice(p?.negative.length ?? 0) : [],
+      loras: mergeList(p?.loras ?? [], fixedLoras, loraKey).slice(p?.loras.length ?? 0),
+    });
+    const preview = (p) => {
+      const a = adds(p);
+      const n = countTags(a.tags) + a.negative.length + a.loras.length;
+      const skipped = countTags(fixedTags) - countTags(a.tags) + (negFixed ? d.negative.length - a.negative.length : 0);
+      const sceneN = countTags(sceneTags) + sceneNeg.length + sceneLoras.length;
+      return html`<div class="split-box"><h3>${p ? `고정 프롬프트 '${p.name}'에 추가돼요` : '새 고정 프롬프트에 들어가요'} · ${n}개</h3>
+          ${n ? rows(a) : html`<div class="sub">새로 추가할 태그가 없어요</div>`}
+          ${skipped ? html`<div class="sub" style="margin-top:6px">이미 들어 있는 ${skipped}개는 건너뛰어요</div>` : ''}</div>
+        <div class="split-box"><h3>이번 생성 기록에 들어가요 · ${sceneN}개</h3>
+          ${sceneN ? rows({ tags: sceneTags, negative: sceneNeg, loras: sceneLoras }) : html`<div class="sub">장면 태그가 없어요</div>`}</div>`;
+    };
     const choice = await openModal(
-      html`<h2>고정 프롬프트에 반영</h2>
-      <p class="sub" style="margin:0 0 10px">포즈·표정·배경은 그림마다 바뀌어서 빼고, 나머지로 고른 프리셋을 <b>덮어써요</b>.</p>
-      <select data-p><option value="">+ 새 고정 프롬프트</option>${options(presets.map((p) => [p.id, p.name]), presetId)}</select>
-      <input type="text" data-n maxlength="60" placeholder="새 프리셋 이름" style="margin-top:8px">
-      <div class="acts"><button class="btn" data-no>취소</button><button class="btn pri" data-yes>반영</button></div>`,
+      html`<h2>고정 / 이번만 나눠서 저장</h2>
+      <label class="f">고정 프롬프트 <select data-p>${options(presets.map((p) => [p.id, p.name]), presetId)}<option value="">+ 새 고정 프롬프트</option></select></label>
+      <input type="text" data-n maxlength="60" placeholder="새 고정 프롬프트 이름" value="${presets.length ? '' : '기본 외형'}" style="margin-top:8px">
+      <div data-preview></div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" data-rec checked> 이번 생성 기록도 저장 (다음 창에서 제목·이미지 정보 확인)</label>
+      <div class="acts"><button class="btn" data-no>취소</button><button class="btn pri" data-yes>확인하고 저장</button></div>`,
       (m, close) => {
+        m.classList.add('wide');
         const sel = $('[data-p]', m);
         const name = $('[data-n]', m);
-        const sync = () => (name.style.display = sel.value ? 'none' : '');
+        const sync = () => {
+          name.style.display = sel.value ? 'none' : '';
+          $('[data-preview]', m).innerHTML = preview(presets.find((p) => p.id === Number(sel.value))).s;
+        };
         sel.onchange = sync;
         sync();
         $('[data-no]', m).onclick = () => close(undefined);
-        $('[data-yes]', m).onclick = () => close({ id: sel.value ? Number(sel.value) : null, name: name.value.trim() });
+        $('[data-yes]', m).onclick = () => close({ id: sel.value ? Number(sel.value) : null, name: name.value.trim(), rec: $('[data-rec]', m).checked });
       },
     );
     if (!choice) return;
-    const known = new Set((await api.get('/api/gen/loras')).map((l) => l.name.toLowerCase()));
-    const body = {
-      tags: Object.fromEntries(FIXED.filter((k) => parsed.categories[k]).map((k) => [k, parsed.categories[k]])),
-      negative: parsed.negative,
-      loras: parsed.loras.filter((l) => known.has(l.name.toLowerCase())),
-    };
-    const out = choice.id
-      ? await attempt(() => api.put(`/api/gen/presets/${choice.id}`, body), '고정 프롬프트에 반영했어요')
-      : await attempt(() => api.post(`/api/characters/${c.id}/gen-presets`, { ...body, name: choice.name || '새 프리셋' }), '고정 프롬프트를 만들었어요');
+    const p = presets.find((x) => x.id === choice.id);
+    const out = p
+      ? await attempt(
+          () =>
+            api.put(`/api/gen/presets/${p.id}`, {
+              tags: mergeTags(p.tags, fixedTags),
+              negative: negFixed ? mergeList(p.negative, d.negative) : p.negative,
+              loras: mergeList(p.loras, fixedLoras, loraKey),
+            }),
+          `고정 프롬프트 '${p.name}'에 넣었어요`,
+        )
+      : await attempt(
+          () => api.post(`/api/characters/${c.id}/gen-presets`, { name: choice.name || '새 고정 프롬프트', tags: fixedTags, negative: negFixed ? d.negative : [], loras: fixedLoras }),
+          '고정 프롬프트를 만들었어요',
+        );
+    if (!out) return;
     presetId = out.id;
     await load();
     draw();
+    if (choice.rec) saveRecord(null, recordFromParsed({ tags: sceneTags, negative: sceneNeg, loras: sceneLoras }));
   };
 
-  const recordFromParsed = () => {
+  /** 네거티브 세트 버튼 연결 */
+  const bindNegSets = (root, onPick) => {
+    $$('[data-negset]', root).forEach((b) => (b.onclick = () => onPick(negSets[Number(b.dataset.negset)])));
+    const manage = $('[data-negset-manage]', root);
+    if (manage) manage.onclick = manageNegSets;
+  };
+
+  /** 내 네거티브 세트 만들기·고치기·지우기 (기본 세트는 고칠 수 없음) */
+  const manageNegSets = async () => {
+    await openModal(
+      html`<h2>네거티브 세트 관리</h2>
+      <div class="sub">기본 세트는 고칠 수 없어요. 내 세트를 만들어 두면 고정 프롬프트·생성 기록에서 눌러서 넣을 수 있어요.</div>
+      <div class="gen-list" data-list style="margin-top:8px"></div>
+      <form data-f class="grid" style="gap:8px;margin-top:10px">
+        <label class="f">세트 이름 <input type="text" name="name" maxlength="60" required placeholder="내 세트"></label>
+        <label class="f">태그 (쉼표로 나눠서) <textarea name="negative" placeholder="nsfw, extra ears"></textarea></label>
+        <div class="acts"><button type="button" class="btn" data-no>닫기</button><button type="button" class="btn" data-reset>새 세트</button><button class="btn pri" data-save>세트 저장</button></div>
+      </form>`,
+      (m, close) => {
+        const f = $('[data-f]', m);
+        let editing = null;
+        const reset = () => {
+          editing = null;
+          f.reset();
+          $('[data-save]', m).textContent = '세트 저장';
+        };
+        const paint = () => {
+          $('[data-list]', m).innerHTML = html`${negSets.map(
+            (s, i) => html`<div class="item"><div class="grow"><b>${s.name}</b>${s.builtin ? html` <span class="chip">기본</span>` : ''}<div class="sub" title="${s.negative.join(', ')}">${s.negative.join(', ')}</div></div>
+              ${s.builtin ? '' : html`<button type="button" class="btn sm" data-edit="${i}">고치기</button><button type="button" class="btn sm danger" data-del="${i}">지우기</button>`}</div>`,
+          )}`.s;
+          $$('[data-edit]', m).forEach(
+            (b) =>
+              (b.onclick = () => {
+                editing = negSets[Number(b.dataset.edit)];
+                f.elements.name.value = editing.name;
+                f.elements.negative.value = editing.negative.join(', ');
+                $('[data-save]', m).textContent = '고친 내용 저장';
+              }),
+          );
+          $$('[data-del]', m).forEach(
+            (b) =>
+              (b.onclick = async () => {
+                const s = negSets[Number(b.dataset.del)];
+                if (!(await attempt(() => api.del(`/api/gen/negative-sets/${s.id}`), `'${s.name}' 세트를 지웠어요`))) return;
+                negSets = await api.get('/api/gen/negative-sets');
+                if (editing?.id === s.id) reset();
+                paint();
+              }),
+          );
+        };
+        paint();
+        $('[data-no]', m).onclick = () => close(undefined);
+        $('[data-reset]', m).onclick = reset;
+        f.onsubmit = async (e) => {
+          e.preventDefault();
+          const body = { name: f.elements.name.value, negative: f.elements.negative.value };
+          const ok = editing
+            ? await attempt(() => api.put(`/api/gen/negative-sets/${editing.id}`, body), '세트를 고쳤어요')
+            : await attempt(() => api.post('/api/gen/negative-sets', body), '세트를 만들었어요');
+          if (!ok) return;
+          negSets = await api.get('/api/gen/negative-sets');
+          reset();
+          paint();
+        };
+      },
+    );
+    draw();
+  };
+
+  const recordFromParsed = (d) => {
     const s = parsed.settings;
     const size = /^(\d+)\s*x\s*(\d+)$/.exec(s.Size || '');
     const platform = parsed.platform && parsed.platform !== '알 수 없음' ? parsed.platform : '';
@@ -321,9 +566,9 @@ export async function renderPromptTab(el, c) {
       platform,
       model: s.Model || (s['--niji'] ? `niji ${s['--niji']}` : s['--v'] ? `v${s['--v']}` : ''),
       prompt_raw: rawText,
-      tags: parsed.categories,
-      negative: parsed.negative,
-      loras: parsed.loras,
+      tags: d.tags,
+      negative: d.negative,
+      loras: d.loras,
       seed: s.Seed ?? s['--seed'] ?? '',
       steps: s.Steps ?? '',
       sampler: s.Sampler ?? '',
@@ -336,6 +581,17 @@ export async function renderPromptTab(el, c) {
   };
 
   // ───── 생성 기록 ─────
+  /** 기록 + 그 기록의 고정 프롬프트 (고정 쪽 태그가 앞, 겹치는 태그는 한 번만). 고정이 없으면 기록 그대로 */
+  const withPreset = (r) => {
+    const p = presets.find((x) => x.id === r.gen_preset_id);
+    if (!p) return r;
+    return {
+      tags: mergeTags(p.tags, r.tags),
+      negative: mergeList(p.negative, r.negative),
+      loras: mergeList(p.loras, r.loras, (l) => l.name.toLowerCase()),
+    };
+  };
+
   const recordCard = () => {
     const shown = filter ? records.filter((r) => r.platform_name === filter) : records;
     const used = [...new Set(records.map((r) => r.platform_name).filter(Boolean))];
@@ -435,7 +691,9 @@ export async function renderPromptTab(el, c) {
           </dl>
         </div>
       </div>
-      <div style="margin-top:12px">${rows(r)}</div>
+      <div style="margin-top:12px">${rows(r, { del: true })}</div>
+      ${negSetBar(negSets, false)}
+      ${withPreset(r) !== r ? html`<div class="hint">프롬프트를 복사하면 고정 프롬프트 '${r.preset_name}'의 태그가 앞에 합쳐져요 (겹치는 태그는 한 번만).</div>` : ''}
       ${r.prompt_raw ? html`<details style="margin-top:10px"><summary class="sub">원문 프롬프트</summary><pre class="raw-pre">${r.prompt_raw}</pre></details>` : ''}
       <div class="acts">
         <button class="btn danger" data-act="del">지우기</button>
@@ -446,12 +704,26 @@ export async function renderPromptTab(el, c) {
       (m, close) => {
         m.classList.add('wide');
         bindRowCopy(m, r);
+        bindChipDelete(m, async (k, i) => {
+          await attempt(() => api.put(`/api/gen/records/${r.id}`, withoutTag(r, k, i)), '태그를 뺐어요');
+          close('refresh');
+        });
+        bindNegSets(m, async (set) => {
+          await attempt(() => api.put(`/api/gen/records/${r.id}`, { negative: mergeList(r.negative, set.negative) }), `네거티브 '${set.name}' 세트를 넣었어요`);
+          close('refresh');
+        });
         const wf = $('[data-wf]', m);
         if (wf) wf.onclick = () => copy(String(r.extra.workflow), '워크플로 JSON을 복사했어요');
         $$('[data-act]', m).forEach((b) => (b.onclick = () => close(b.dataset.act)));
       },
     );
-    if (act === 'copy') copy(promptText(r, 'sd'));
+    if (act === 'refresh') {
+      await load();
+      draw();
+      const again = records.find((x) => x.id === r.id);
+      if (again) openRecord(again);
+    }
+    if (act === 'copy') copy(promptText(withPreset(r), 'sd'));
     if (act === 'edit') saveRecord(r, r);
     if (act === 'cover') {
       await attempt(() => api.put(`/api/gen/records/${r.id}`, { is_cover: true }), '대표 이미지로 정했어요');
