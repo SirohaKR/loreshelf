@@ -3,7 +3,7 @@
 > 이 문서의 목적: **나중에 내가 DB를 직접 고칠 때, 이름만 보고 뜻과 연결을 알 수 있게** 하는 것.
 > 규칙에 예외를 만들지 않는 게 핵심이에요. 예외가 꼭 필요하면 이 문서의 "예외 목록"에 적어요.
 
-- 스키마 원본: [server/migrations/](../server/migrations/) (SQLite, 테이블 43개). 지금 모습 = 0001부터 마지막 번호까지 차례로 실행한 결과
+- 스키마 원본: [server/migrations/](../server/migrations/) (SQLite, 테이블 44개). 지금 모습 = 0001부터 마지막 번호까지 차례로 실행한 결과
 - 그림: [erd.html](erd.html) — `server` 폴더에서 `dart run tool/make_erd.dart`로 마이그레이션에서 자동 생성
 - 규칙 자동 검사: [server/test/schema_rules_test.dart](../server/test/schema_rules_test.dart)
 - 언어 선택: [언어-선택.md](언어-선택.md)
@@ -96,7 +96,7 @@
 | `game_quests.status` | `draft` / `planned` / `done` | 초안 / 기획 중 / 확정 |
 | `chatbot_test_messages.role` | `user` / `assistant` | 나 / 캐릭터 |
 | `genres.category` | `genre` / `setting` / `mood` / `trope` / `game` / `custom` | 장르 / 배경·무대 / 분위기·관계 / 소재·설정 / 게임·형식 / 직접 추가 |
-| `gen_tag_rules.category` | `character` / `outfit` / `expression` / `pose` / `background` / `style` / `quality` / `etc` | 인물·외형 / 의상·소품 / 표정 / 포즈·구도 / 배경·조명 / 스타일·화풍 / 품질 / 미분류 |
+| `gen_tag_rules.category` | `character` / `personality` / `outfit` / `props` / `expression` / `pose` / `background` / `style` / `quality` / `etc` | 인물·외형 / 성격·분위기 / 의상 / 소품 / 표정 / 포즈·구도 / 배경·조명 / 스타일·화풍 / 품질 / 미분류 (personality·props는 0004에서 추가) |
 
 ### 2-6. 인덱스 · 제약 이름
 

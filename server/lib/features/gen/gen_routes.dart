@@ -21,6 +21,7 @@ import 'gen_records_repository.dart';
 class GenRoutes {
   final Db db;
   final GenCatalogRepository catalog;
+  final GenNegativeSetsRepository negativeSets;
   final GenRecordsRepository records;
   final AssetsRepository assets;
   final AssetsService files;
@@ -28,6 +29,7 @@ class GenRoutes {
   GenRoutes(AppContext app)
       : db = app.db,
         catalog = GenCatalogRepository(app.db),
+        negativeSets = GenNegativeSetsRepository(app.db),
         records = GenRecordsRepository(app.db),
         assets = AssetsRepository(app.db),
         files = AssetsService(app);
@@ -89,6 +91,27 @@ class GenRoutes {
     });
     r.delete('/api/gen/tag-rules/<id>', (Request req, String id) {
       catalog.forget(req.ctx.user, pathInt(id));
+      return ok();
+    });
+    // 네거티브 세트: 기본 세트(고칠 수 없음) + 내가 만든 세트
+    r.get('/api/gen/negative-sets', (Request req) => json([
+          for (final s in defaultNegativeSets) s.toJson(),
+          for (final s in negativeSets.list(req.ctx.user)) _negativeSetJson(s),
+        ]));
+    r.post('/api/gen/negative-sets', (Request req) async {
+      final b = await body(req);
+      final id = negativeSets.add(req.ctx.user, requireStr(b['name'], '세트 이름', max: 60), _negativeJson(b['negative']));
+      return json(_negativeSetJson(negativeSets.one(req.ctx.user, id)), status: 201);
+    });
+    r.put('/api/gen/negative-sets/<id>', (Request req, String id) async {
+      final b = await body(req);
+      negativeSets.update(req.ctx.user, pathInt(id),
+          name: b.containsKey('name') ? requireStr(b['name'], '세트 이름', max: 60) : null,
+          negativeJson: b.containsKey('negative') ? _negativeJson(b['negative']) : null);
+      return json(_negativeSetJson(negativeSets.one(req.ctx.user, pathInt(id))));
+    });
+    r.delete('/api/gen/negative-sets/<id>', (Request req, String id) {
+      negativeSets.delete(req.ctx.user, pathInt(id));
       return ok();
     });
     r.get('/api/gen/categories', (Request req) => json([
@@ -217,6 +240,9 @@ class GenRoutes {
     });
     return jsonEncode({for (final k in promptCategoryKeys) if (out[k] != null) k: out[k]});
   }
+
+  Map<String, Object?> _negativeSetJson(Row r) =>
+      {'id': r['id'], 'name': r['name'], 'negative': jsonDecode(r['negative_json'] as String), 'builtin': false};
 
   String _negativeJson(Object? v) {
     final list = v is String ? v.split(RegExp(r'[,\n]')) : (v is List ? v : const []);

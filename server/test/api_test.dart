@@ -306,6 +306,35 @@ void main() {
       expect(await c.ok('GET', '/api/gen/tag-rules'), isEmpty);
     });
 
+    test('새 칸(성격·분위기, 소품)도 내 사전에 기억된다 (0004 마이그레이션)', () async {
+      final a = await c.ok('POST', '/api/gen/tag-rules', {'tag': 'brooding', 'category': 'personality'});
+      final b = await c.ok('POST', '/api/gen/tag-rules', {'tag': 'pocket watch', 'category': 'props'});
+      final p = await c.ok('POST', '/api/gen/parse', {'text': 'brooding, pocket watch, shy, bouquet'});
+      expect(p['categories']['personality'].map((t) => t['tag']), ['brooding', 'shy']);
+      expect(p['categories']['props'].map((t) => t['tag']), ['pocket watch', 'bouquet']);
+      final cats = await c.ok('GET', '/api/gen/categories') as List;
+      expect(cats.map((x) => x['key']), containsAll(['personality', 'props']));
+      await c.ok('DELETE', '/api/gen/tag-rules/${a['id']}');
+      await c.ok('DELETE', '/api/gen/tag-rules/${b['id']}');
+    });
+
+    test('네거티브 세트: 기본 5개 + 내가 만든 세트 만들기·고치기·지우기', () async {
+      var sets = await c.ok('GET', '/api/gen/negative-sets') as List;
+      expect(sets.where((s) => s['builtin'] == true).map((s) => s['name']), ['품질', '손·해부학', '글자·워터마크', '얼굴', '기타']);
+      expect(sets.first['negative'], contains('lowres'));
+      final mine = await c.ok('POST', '/api/gen/negative-sets', {'name': '내 세트', 'negative': 'nsfw, extra ears'});
+      expect(mine['negative'], ['nsfw', 'extra ears']);
+      expect(mine['builtin'], false);
+      final fixed = await c.ok('PUT', '/api/gen/negative-sets/${mine['id']}', {'negative': ['nsfw']});
+      expect(fixed['negative'], ['nsfw']);
+      expect(fixed['name'], '내 세트');
+      expect((await c.call('POST', '/api/gen/negative-sets', {'name': ''})).$1, 400);
+      await c.ok('DELETE', '/api/gen/negative-sets/${mine['id']}');
+      sets = await c.ok('GET', '/api/gen/negative-sets') as List;
+      expect(sets.length, 5);
+      expect((await c.call('DELETE', '/api/gen/negative-sets/${mine['id']}')).$1, 404);
+    });
+
     test('플랫폼(기본 4개)·모델·LoRA 목록', () async {
       final platforms = await c.ok('GET', '/api/gen/platforms') as List;
       expect(platforms.map((p) => p['name']), ['NovelAI', 'Stable Diffusion WebUI', 'ComfyUI', 'Midjourney']);

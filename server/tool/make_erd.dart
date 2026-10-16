@@ -13,7 +13,7 @@ const _groups = [
   ('캐릭터', '#3f5bd8', ['characters', 'character_templates', 'character_fields', 'character_traits', 'character_quotes', 'character_relations', 'character_assets', 'character_tags']),
   ('문서 · 메모 · 연표 · 기록', '#2f9e6b', ['docs', 'memos', 'memo_tags', 'timeline_events', 'timeline_event_characters', 'revisions']),
   ('챗봇 (chatbot_)', '#d6487a', ['chatbot_versions', 'chatbot_greetings', 'chatbot_lore_entries', 'chatbot_test_messages']),
-  ('이미지 생성 (gen_)', '#7c5cd6', ['gen_presets', 'gen_preset_loras', 'gen_records', 'gen_record_loras', 'gen_platforms', 'gen_models', 'gen_loras', 'gen_tag_rules']),
+  ('이미지 생성 (gen_)', '#7c5cd6', ['gen_presets', 'gen_preset_loras', 'gen_records', 'gen_record_loras', 'gen_platforms', 'gen_models', 'gen_loras', 'gen_tag_rules', 'gen_negative_sets']),
   ('게임 (game_) · 보드 (board_)', '#b5651d', ['game_stats', 'game_stat_values', 'game_skills', 'game_quests', 'board_columns', 'board_cards', 'board_card_tags']),
 ];
 

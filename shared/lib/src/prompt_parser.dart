@@ -4,17 +4,34 @@
 // (docs/planning/mockups/prompt-parser.js 프로토타입을 옮긴 것)
 
 /// 분류 카테고리 키 — DB gen_tag_rules.category, tags_json 키와 같다. 순서 = 화면 순서.
-const promptCategoryKeys = ['character', 'outfit', 'expression', 'pose', 'background', 'style', 'quality', 'etc'];
+const promptCategoryKeys = ['character', 'personality', 'outfit', 'props', 'expression', 'pose', 'background', 'style', 'quality', 'etc'];
 
 const promptCategoryLabels = {
   'character': '인물·외형',
-  'outfit': '의상·소품',
+  'personality': '성격·분위기',
+  'outfit': '의상',
+  'props': '소품',
   'expression': '표정',
   'pose': '포즈·구도',
   'background': '배경·조명',
   'style': '스타일·화풍',
   'quality': '품질',
   'etc': '미분류',
+};
+
+/// 붙여넣은 프롬프트를 나눌 때 각 칸이 기본으로 가는 곳 (화면에서 칸마다 바꿀 수 있음).
+/// fixed = 캐릭터의 고정 프롬프트(정체성), outfit = 의상 프리셋, scene = 이번 생성 기록에만.
+const promptCategoryDefaultTarget = {
+  'character': 'fixed',
+  'personality': 'fixed',
+  'outfit': 'outfit',
+  'props': 'scene',
+  'expression': 'scene',
+  'pose': 'scene',
+  'background': 'scene',
+  'style': 'fixed',
+  'quality': 'fixed',
+  'etc': 'scene',
 };
 
 /// 플랫폼 이름 (감지 결과). 못 알아보면 null.
@@ -25,15 +42,28 @@ abstract final class PromptPlatform {
   static const comfyui = 'ComfyUI';
 }
 
-// 순서가 중요: 위에서부터 먼저 걸리는 쪽으로 분류
+// 성격 단어 — 태그 전체가 이 단어(들)일 때만 성격으로 본다 ("gentle smile"은 표정, "cold eyes"는 외형)
+const _traits = 'shy|quiet|prudent|cautious|careful|cheerful|cold|cool|gentle|kind|calm|timid|confident|arrogant|aloof|stoic|'
+    'tsundere|yandere|kuudere|dandere|deredere|genki|mischievous|playful|elegant|graceful|innocent|naive|mysterious|'
+    'introverted|introvert|extroverted|extrovert|reserved|dignified|noble|wise|cunning|sly|flirty|flirtatious|energetic|'
+    'carefree|melancholic|melancholy|lonely|caring|polite|strict|stern|lazy|brave|proud|cocky|serene|tender|warm|friendly|'
+    'cheeky|charismatic|composed|honest|sincere|stubborn|clumsy|airheaded|bubbly|sweet|sassy|haughty|modest|humble|'
+    'thoughtful|intelligent|clever|wild|fierce|lively|bright|gloomy|grumpy|aggressive|sensitive|loyal|soft-spoken';
+const _traitMod = r'(?:(?:very|slightly|somewhat|a bit|bit|kind of|a little) )?';
+const _traitTail = r'(?: (?:personality|impression|demeanor|demeanour|temperament|vibe|aura|type|nature|attitude|look|person))?';
+
+// 순서가 중요: 위에서부터 먼저 걸리는 쪽으로 분류.
+// 동작(holding/offering/giving …)으로 시작하는 태그는 포즈가 의상·소품·배경보다 먼저, 꽃은 밭·정원이 아니면 소품.
 final _rules = <(String, RegExp)>[
-  ('quality', RegExp(r'\b(masterpiece|best quality|high quality|amazing quality|very aesthetic|aesthetic|absurdres|highres|ultra[- ]detailed|extremely detailed|8k|4k|newest|score_\d\w*)\b')),
-  ('style', RegExp(r'(^artist:|^by |\bstyle\b|\b(anime|illustration|watercolor|oil painting|realistic|photorealistic|flat colou?r|cel shading|sketch|lineart|painterly|chibi|pixel art|3d|render|monochrome|greyscale|retro|coloring)\b)')),
-  ('expression', RegExp(r'\b(smile|smiling|blush|expressionless|frown|angry|crying|tears|pout|smirk|grin|serious|sad|surprised|open mouth|closed mouth|closed eyes|half-closed eyes)\b')),
-  ('pose', RegExp(r'\b(standing|sitting|kneeling|lying|walking|running|from above|from below|from side|from behind|side view|upper body|full body|cowboy shot|portrait|close-up|wide shot|looking at viewer|looking back|looking away|arms crossed|hand on hip|hands? up|holding\b.*|dynamic pose|pov|dutch angle|profile)\b')),
-  ('outfit', RegExp(r'\b(armor|dress|cape|cloak|sword|weapon|uniform|gloves|gauntlets|boots|hat|jacket|shirt|skirt|ribbon|earrings?|necklace|choker|coat|hood|scarf|belt|pants|shorts|apron|glasses|crown|bow|kimono|sleeves|thighhighs|socks)\b')),
-  ('character', RegExp(r'(^\d+(girl|boy|other)s?$|^solo$|\b(hair|eyes|bangs|ponytail|braid|twintails|ahoge|skin|freckles|ears|horns|tail|wings|female|male|woman|man|girl|boy|mature|young|tall|petite|muscular|scar|mole)\b)')),
-  ('background', RegExp(r'\b(background|outdoors|indoors|forest|city|street|night|day|sky|clouds?|ruins|castle|room|snow|rain|sunset|sunrise|moon|moonlight|stars?|light|lighting|shadow|bokeh|depth of field|embers|fire|smoke|water|ocean|field|flowers?|cherry blossoms|window|backlighting|rim light|glow)\b')),
+  ('quality', RegExp(r'(\b(masterpiece|best quality|high quality|amazing quality|great quality|good quality|normal quality|top quality|very aesthetic|aesthetic|absurdres|highres|ultra[- ]?detailed|extremely detailed|highly detailed|hyper[- ]?detailed|super detailed|very detailed|intricate details?|fine details?|8k|4k|uhd|hdr|newest|score_\d\w*|sharp focus)\b|^detailed$)')),
+  ('personality', RegExp('(^$_traitMod(?:$_traits)(?:(?:,? and |, | |-)$_traitMod(?:$_traits))*$_traitTail\$|\\b(personality|impression|demeanou?r|temperament|vibe|aura|attitude)\\b)')),
+  ('style', RegExp(r'(^artist:|^by |\bstyle\b|\b(anime|manga|manhwa|webtoon|comic|cartoon|illustration|watercolou?r|oil painting|acrylic|gouache|ink|realistic|semi-realistic|photorealistic|flat colou?rs?|flat shading|cel[- ]?shad(ing|ed)|soft shading|shading|sketch|lineart|line art|linework|outlines?|lines|painterly|chibi|pixel art|2d|2\.5d|3d|render|cgi?|digital (art|painting)|concept art|official art|game cg|monochrome|greyscale|grayscale|retro|vintage|coloring|colou?r palette|palette|vivid colou?rs|pastel colou?rs|muted colou?rs|bold colou?rs|high contrast|traditional media)\b)')),
+  ('expression', RegExp(r'\b(smile|smiling|smirk|grin|laugh|laughing|blush|blushing|expressionless|frown|frowning|angry|crying|tears|teary|pout|pouting|serious|sad|surprised|shocked|embarrassed|nervous|worried|scared|annoyed|smug|determined|sleepy|tired|bored|disgusted|confused|happy|wink|winking|tongue out|open mouth|closed mouth|parted lips|clenched teeth|closed eyes|half-closed eyes|expression)\b')),
+  ('pose', RegExp(r"(^(holding|offering|giving|handing|presenting|showing|carrying|hugging|embracing|raising|lifting|grabbing|clutching|reaching|pointing|waving|touching|adjusting|pulling|playing|eating|drinking|reading|writing|smelling|sniffing|kissing|throwing|catching|wielding|swinging|leaning|resting)\b|\b(standing|sitting|seated|kneeling|lying|walking|running|jumping|crouching|squatting|floating|stretching|from above|from below|from side|from behind|from (the )?front|(front|back|rear|side|three[- ]quarters?|top|full[- ]body) view|facing (the )?viewer|facing away|upper body|lower body|full body|half body|cowboy shot|portrait|bust shot|close[- ]?up|medium shot|long shot|wide shot|head ?shot|(chest|waist|knee|thigh|shoulder)[- ]up|frame|framing|centered|looking at viewer|looking back|looking away|looking (up|down|to the side)|head tilt|tilted head|head tilted|tilting head|arms crossed|crossed arms|hand on (own )?(hip|chest|chin|cheek)|hands? on hips|hands? up|hands together|arms behind back|arms up|in front of (chest|face|body|self)|peace sign|v sign|salute|dynamic pose|pose|pov|dutch angle|low angle|high angle|bird'?s[- ]eye|worm'?s[- ]eye|fisheye|perspective|foreshortening|profile)\b)")),
+  ('outfit', RegExp(r'(\b(hair|neck) (ribbon|bow|ornament|clip|flower|band|tie)s?\b|\b(armor|armour|dress|cape|cloak|uniform|gloves|gauntlets|boots|hat|cap|beret|jacket|blazer|shirt|t-shirt|blouse|sweater|hoodie|cardigan|vest|waistcoat|suit|tuxedo|tailcoat|cravat|ascot|tie|necktie|bow ?tie|collar|collared|skirt|earrings?|necklace|pendant|brooch|bracelet|choker|coat|overcoat|hood|scarf|belt|pants|trousers|jeans|shorts|leggings|stockings|pantyhose|apron|glasses|eyewear|monocle|crown|tiara|veil|headband|hairband|hairpin|hairclip|bow|kimono|yukata|hanbok|robe|tunic|corset|bodysuit|swimsuit|bikini|pajamas|sleeves|sleeveless|cuffs|cufflinks|buttons?|unbuttoned|thighhighs|socks|shoes|heels|sneakers|sandals|loafers|mask|eyepatch|outfit|clothes|clothing|attire|costume|lingerie|frills|lace)\b)')),
+  ('props', RegExp(r"^(?!.*\b(field|garden|meadow|background|petals|tree|bed|falling)\b).*\b(bouquet|flowers?|roses?|lil(y|ies)|tulips?|sunflowers?|daisy|daisies|carnations?|peony|peonies|orchids?|lavender|baby'?s breath|gypsophila|ribbons?|gift|present|gift box|letter|envelope|book|cup|teacup|mug|wine glass|umbrella|parasol|hand fan|folding fan|phone|smartphone|bag|handbag|backpack|sword|katana|weapon|gun|rifle|pistol|staff|wand|spear|scythe|dagger|knife|shield|lantern|candle|cake|food|instrument|guitar|violin|microphone|camera|teddy bear|stuffed (animal|toy)|doll|cigarette|pipe|key|cards?|tray|basket|balloons?)\b")),
+  ('character', RegExp(r'(^\d+(girl|boy|other|person|people|man|woman|men|women)s?$|^solo( focus)?$|\b(hair|haired|eyes|eye|pupils|irises|heterochromia|eyelids|eyelashes|eyebrows|bangs|ponytail|braid|twintails|ahoge|skin|complexion|freckles|ears|horns|tail|wings|fangs?|face|facial|jaw|jawline|chin|cheekbones|nose|forehead|beard|stubble|mustache|dark circles|female|male|woman|man|girl|boy|mature|young|adult|teen|teenage|child|elderly|middle-aged|years old|tall|petite|slender|slim|thin|chubby|curvy|muscular|toned|abs|body|figure|build|handsome|beautiful|pretty|cute|bishounen|bishoujo|ikemen|elf|demon|scar|mole|tan|tanned|pale)\b)')),
+  ('background', RegExp(r'\b(background|outdoors|indoors|forest|city|street|night|day|sky|clouds?|ruins|castle|room|snow|rain|sunset|sunrise|moon|moonlight|stars?|light|lighting|lit|shadows?|bokeh|depth of field|embers|fire|smoke|water|ocean|sea|beach|field|garden|meadow|flowers?|petals|cherry blossoms|window|backlighting|rim light|glow|sunlight|cinematic|ambient|atmosphere|scenery|landscape)\b')),
 ];
 
 class PromptTag {
@@ -227,4 +257,49 @@ String formatPrompt(Map<String, List<PromptTag>> tags,
   var out = parts.join(', ');
   if (negative.isNotEmpty) out += '\n${novelai ? '네거티브: ' : 'Negative prompt: '}${negative.join(', ')}';
   return out;
+}
+
+// ───── 고정 프롬프트 / 이번 생성 기록으로 나누기 ─────
+
+/// 칸 하나가 갈 곳: 'fixed'(고정 프롬프트 = 의상 프리셋) 또는 'scene'(이번 생성 기록에만).
+/// [targets]에 없는 칸은 [promptCategoryDefaultTarget] 기본값 (의상은 고정 프롬프트로 간다).
+String promptTargetOf(String category, [Map<String, String> targets = const {}]) {
+  final t = targets[category] ?? promptCategoryDefaultTarget[category] ?? 'scene';
+  return t == 'scene' ? 'scene' : 'fixed';
+}
+
+/// 분류 결과를 고정 쪽과 이번만 쪽으로 나눈다
+({Map<String, List<PromptTag>> fixed, Map<String, List<PromptTag>> scene}) splitPromptTags(
+  Map<String, List<PromptTag>> categories, {
+  Map<String, String> targets = const {},
+}) {
+  final fixed = <String, List<PromptTag>>{};
+  final scene = <String, List<PromptTag>>{};
+  categories.forEach((k, list) {
+    if (list.isEmpty) return;
+    (promptTargetOf(k, targets) == 'fixed' ? fixed : scene)[k] = [...list];
+  });
+  return (fixed: fixed, scene: scene);
+}
+
+/// [add] 중에서 [base]에 아직 없는 태그만 (어느 칸에 있든 정규화한 글이 같으면 이미 있는 것으로 본다)
+Map<String, List<PromptTag>> newPromptTags(Map<String, List<PromptTag>> base, Map<String, List<PromptTag>> add) {
+  final seen = {for (final list in base.values) for (final t in list) normalizeTag(t.tag)};
+  final out = <String, List<PromptTag>>{};
+  for (final k in [...promptCategoryKeys, ...add.keys.where((k) => !promptCategoryKeys.contains(k))]) {
+    for (final t in add[k] ?? const <PromptTag>[]) {
+      if (seen.add(normalizeTag(t.tag))) out.putIfAbsent(k, () => []).add(t);
+    }
+  }
+  return out;
+}
+
+/// [base]에 [add]의 새 태그만 붙인 결과 (칸 순서 유지)
+Map<String, List<PromptTag>> mergePromptTags(Map<String, List<PromptTag>> base, Map<String, List<PromptTag>> add) {
+  final extra = newPromptTags(base, add);
+  final keys = {...base.keys, ...extra.keys};
+  return {
+    for (final k in [...promptCategoryKeys.where(keys.contains), ...keys.where((k) => !promptCategoryKeys.contains(k))])
+      k: [...?base[k], ...?extra[k]],
+  };
 }

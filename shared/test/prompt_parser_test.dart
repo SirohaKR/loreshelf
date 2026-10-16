@@ -111,6 +111,56 @@ void main() {
     });
   });
 
+  group('긴 태그 나열 프롬프트 (사용자 예시)', () {
+    const text = '''1person, anime style, illustration, comic style, 2D, bold lines, fine linework, sharp outlines, highly detailed, realistic color palette, detailed hair, flat color, cel shading, masterpiece, best quality, detail illustration, 1boy, solo, adult male, young man, black hair, short hair, 7:3 parted hair, side-swept bangs, messy bangs, hair between eyes, bangs partially covering one eye, textured hair, red eyes, sharp eyes, half-closed eyes, droopy eyelids, slight dark circles under eyes, detail eyes, slender face, sharp jawline, pale skin, handsome, quiet and prudent impression, (portrait:1.3), (chest-up:1.3), (close-up:1.2), (character fills the frame:1.2), front view, slight head tilt, (holding bouquet:1.3), (offering bouquet:1.2), bouquet in front of chest, giving flowers, looking at viewer, (faint blush:0.7), light blush on cheeks, shy, slight smile, closed mouth, white dress shirt, black vest, loosened cravat, bouquet, red roses, white roses, baby's breath, wrapped bouquet, ribbon, (white background:1.3), simple background, soft lighting''';
+    final p = parsePrompt(text);
+
+    test('미분류 없음, 칸마다 맞게', () {
+      expect(tags(p, 'etc'), isEmpty);
+      expect(tags(p, 'quality'), ['highly detailed', 'masterpiece', 'best quality']);
+      expect(tags(p, 'style'), ['anime style', 'illustration', 'comic style', '2D', 'bold lines', 'fine linework', 'sharp outlines', 'realistic color palette', 'flat color', 'cel shading', 'detail illustration']);
+      expect(tags(p, 'personality'), ['quiet and prudent impression', 'shy']);
+      expect(tags(p, 'character'), [
+        '1person', 'detailed hair', '1boy', 'solo', 'adult male', 'young man', 'black hair', 'short hair', '7:3 parted hair', 'side-swept bangs', 'messy bangs',
+        'hair between eyes', 'bangs partially covering one eye', 'textured hair', 'red eyes', 'sharp eyes', 'droopy eyelids', 'slight dark circles under eyes',
+        'detail eyes', 'slender face', 'sharp jawline', 'pale skin', 'handsome',
+      ]);
+      expect(tags(p, 'expression'), ['half-closed eyes', 'faint blush', 'light blush on cheeks', 'slight smile', 'closed mouth']);
+      expect(tags(p, 'pose'), [
+        'portrait', 'chest-up', 'close-up', 'character fills the frame', 'front view', 'slight head tilt', 'holding bouquet', 'offering bouquet',
+        'bouquet in front of chest', 'giving flowers', 'looking at viewer',
+      ]);
+      expect(tags(p, 'outfit'), ['white dress shirt', 'black vest', 'loosened cravat']);
+      expect(tags(p, 'props'), ['bouquet', 'red roses', 'white roses', "baby's breath", 'wrapped bouquet', 'ribbon']);
+      expect(tags(p, 'background'), ['white background', 'simple background', 'soft lighting']);
+    });
+  });
+
+  group('같은 계열 단어', () {
+    final cases = {
+      'personality': ['cheerful', 'cold', 'gentle', 'very shy', 'calm and gentle', 'tsundere', 'mysterious aura', 'cold impression', 'kind personality'],
+      'character': ['round face', 'narrow eyes', 'tsurime eyes', 'thick eyebrows', 'long eyelashes', 'square jaw', 'tanned skin', 'beautiful'],
+      'style': ['thick lines', 'clean lineart', 'soft shading', 'pastel colors', 'semi-realistic', 'digital painting', 'manhwa', '2.5D'],
+      'quality': ['ultra detailed', 'intricate details', 'absurdres', 'sharp focus'],
+      'pose': ['from front', 'three-quarter view', 'waist-up', 'tilted head', 'low angle', 'carrying bag', 'handing letter', 'hand on own chest', 'upper body'],
+      'outfit': ['black necktie', 'red bow tie', 'ascot', 'brown waistcoat', 'white blouse', 'black trousers', 'hair ribbon', 'pearl necklace', 'loafers'],
+      'props': ['flower', 'lily', 'sunflowers', 'gift box', 'red ribbon', 'umbrella', 'teacup', 'sword', 'book'],
+      'background': ['flower field', 'falling petals', 'cherry blossoms', 'garden', 'sunlight', 'blurry background'],
+      'expression': ['gentle smile', 'embarrassed', 'teary eyes', 'smug', 'parted lips'],
+    };
+    for (final MapEntry(key: cat, value: list) in cases.entries) {
+      for (final t in list) {
+        test('$t → $cat', () => expect(classifyTag(t), cat));
+      }
+    }
+    test('동작이 먼저: giving flowers는 배경이 아니라 포즈', () => expect(classifyTag('giving flowers'), 'pose'));
+  });
+
+  test('카테고리 키·라벨·기본 행선지가 서로 맞다', () {
+    expect(promptCategoryLabels.keys.toList(), promptCategoryKeys);
+    expect(promptCategoryDefaultTarget.keys.toSet(), promptCategoryKeys.toSet());
+  });
+
   test('빈 입력', () {
     final p = parsePrompt('  \n ');
     expect(p.platform, isNull);

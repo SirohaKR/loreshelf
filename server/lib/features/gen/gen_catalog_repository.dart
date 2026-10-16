@@ -155,3 +155,31 @@ class GenCatalogRepository {
     }
   }
 }
+
+/// 내가 만든 네거티브 세트 (gen_negative_sets). 기본 세트는 shared 패키지의 defaultNegativeSets.
+class GenNegativeSetsRepository {
+  final Db db;
+  GenNegativeSetsRepository(this.db);
+
+  List<Row> list(int userId) =>
+      db.rows('SELECT id, name, negative_json, sort_order FROM gen_negative_sets WHERE user_id = ? ORDER BY sort_order, id', [userId]);
+
+  Row one(int userId, int id) =>
+      db.one('SELECT id, name, negative_json, sort_order FROM gen_negative_sets WHERE id = ? AND user_id = ?', [id, userId]) ??
+      (throw ApiError('네거티브 세트를 찾을 수 없어요', 404));
+
+  int add(int userId, String name, String negativeJson) => db.insert('''INSERT INTO gen_negative_sets (user_id, name, negative_json, sort_order)
+      VALUES (?, ?, ?, (SELECT COALESCE(MAX(sort_order), -1) + 1 FROM gen_negative_sets WHERE user_id = ?))''', [userId, name, negativeJson, userId]);
+
+  void update(int userId, int id, {String? name, String? negativeJson}) {
+    one(userId, id);
+    if (name != null) db.exec('UPDATE gen_negative_sets SET name = ? WHERE id = ?', [name, id]);
+    if (negativeJson != null) db.exec('UPDATE gen_negative_sets SET negative_json = ? WHERE id = ?', [negativeJson, id]);
+  }
+
+  void delete(int userId, int id) {
+    if (db.exec('DELETE FROM gen_negative_sets WHERE id = ? AND user_id = ?', [id, userId]) == 0) {
+      throw ApiError('네거티브 세트를 찾을 수 없어요', 404);
+    }
+  }
+}
